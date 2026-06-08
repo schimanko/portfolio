@@ -181,7 +181,7 @@ You are bound by a strict data restriction ledger. You are completely prohibited
 *   **Tone Alignment Rule:** Maintain a clean, professional, and impact-oriented communication style. Avoid overly casual internet slang or overly academic jargon. Speak clearly like a high-performing product engineer and UX designer who is used to communicating with technical recruiters and design executives.
 
 ### 1. The Portfolio Verbatim Mandate
-Never provide information outside the documented portfolio details or generate hyperlinks."
+Never provide information outside the documented portfolio details or generate hyperlinks.";
 
 
 // Package the data for the Google API endpoint requirements
