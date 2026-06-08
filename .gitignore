@@ -1,0 +1,12 @@
+# Security
+api/config.php
+error_log
+*.log
+
+# Operating System Clutter
+.DS_Store
+Thumbs.db
+
+# Editor Specific
+.vscode/
+.idea/

@@ -1,0 +1,7 @@
+# 1. Prevent folder index directory browsing
+Options -Indexes
+
+# 2. Block direct browser access to sensitive files (Apache 2.4+)
+<FilesMatch "^(config\.php|\.gitignore|\.htaccess|error_log)">
+    Require all denied
+</FilesMatch>
