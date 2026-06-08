@@ -13,8 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 if (file_exists(__DIR__ . '/config.php')) {
     require_once __DIR__ . '/config.php';
-} elseif (file_exists(__DIR__ . '/../../config.php')) {
-    require_once __DIR__ . '/../../config.php';
+} elseif (file_exists(__DIR__ . '/../../../config.php')) {
+    require_once __DIR__ . '/../../../config.php';
+} elseif (file_exists(__DIR__ . '/../../../../config.php')) {
+    require_once __DIR__ . '/../../../../config.php';
 }
 
 $apiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : null;
