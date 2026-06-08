@@ -11,12 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+// Check if config exists locally (VS Code) or in the root/home directory (Production)
 if (file_exists(__DIR__ . '/config.php')) {
     require_once __DIR__ . '/config.php';
-} elseif (file_exists(__DIR__ . '/../../../config.php')) {
-    require_once __DIR__ . '/../../../config.php';
-} elseif (file_exists(__DIR__ . '/../../../../config.php')) {
-    require_once __DIR__ . '/../../../../config.php';
+} elseif (file_exists(__DIR__ . '/../../config.php')) {
+    require_once __DIR__ . '/../../config.php';
 }
 
 $apiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : null;
