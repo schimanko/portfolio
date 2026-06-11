@@ -1,5 +1,6 @@
 # Security
 api/config.php
+pt/pt_api/
 error_log
 *.log
 

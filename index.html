@@ -4,26 +4,32 @@
     <head>
         <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
         <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-        <link rel="preload" href="assets/thumbs/testamentus-3.avif" as="image"
-        type="image/avif" fetchpriority="high">
-        <link rel="preload" href="style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript>
-            <link rel="stylesheet" href="style.css">
+            <link rel="stylesheet" href="css/style.css">
         </noscript>
+        <link rel="stylesheet" href="css/style.css">
         <meta charset="UTF-8">
         <link rel="icon" type="image/x-icon" href="favicon.ico">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>
             Lio Schimanko | Product Engineer
         </title>
+        <link rel="canonical" href="https://schimanko.dev/">
         <meta name="title" content="Lio Schimanko | Product Engineer">
         <meta name="description" content="Product Engineer specializing in UX Design.">
         <meta property="og:type" content="website">
-        <meta property="og:url" content="https://en.lio.des.br/">
+        <meta property="og:url" content="https://schimanko.dev/">
         <meta property="og:title" content="Lio Schimanko | Product Engineer">
-        <meta property="og:description" content="Impacting over 1 million users with intuitive interfaces and a focus on UX and Product.">
-        <meta property="og:image" content="https://lio.des.br/en/assets/frames/en-og.png">
-        <link rel="stylesheet" href="style.css">
+        <meta property="og:description" content="Impacting over 1 million users with intuitive interfaces and a focus on UX Design.">
+        <meta property="og:image" content="https://schimanko.dev/assets/frames/og.png">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Lio Schimanko | Product Engineer">
+        <meta name="twitter:description" content="Product Engineer specializing in UX Design.">
+        <meta name="twitter:image" content="https://schimanko.dev/assets/frames/og.png">
+        <link rel="alternate" hreflang="en" href="https://schimanko.dev/">
+        <link rel="alternate" hreflang="pt" href="https://pt.schimanko.dev/">
+        <link rel="alternate" hreflang="x-default" href="https://schimanko.dev/">
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-N4WRRJ0VTJ">
         </script>
         <script>
@@ -63,16 +69,21 @@
             <div id="progress-bar">
             </div>
         </div>
-        <button id="btn-a11y" class="floating-a11y-btn" aria-label="Accessibility"
-        tabindex="0">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5"
-                />
-                <circle cx="12" cy="7" r="2" fill="currentColor" />
-                <path d="M7 11H17M12 11V16M12 16L9 21M12 16L15 21" stroke="currentColor"
-                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-        </button>
+        <div class="floating-top-actions">
+            <a id="btn-lang" class="floating-lang-btn" aria-label="Switch to Portuguese" href="https://pt.schimanko.dev/" tabindex="0">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5" />
+                    <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="currentColor" font-size="8.5" font-weight="bold" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" letter-spacing="-0.02em">PT</text>
+                </svg>
+            </a>
+            <button id="btn-a11y" class="floating-a11y-btn" aria-label="Acessibilidade" tabindex="0">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5" />
+                    <circle cx="12" cy="7" r="2" fill="currentColor" />
+                    <path d="M7 11H17M12 11V16M12 16L9 21M12 16L15 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </div>
         <div id="app-container">
             <div id="back-button" class="floating-back-btn hidden" tabindex="-1">
                 <svg width="12" height="35" viewBox="0 0 5.21484 17.4707" fill="none"
