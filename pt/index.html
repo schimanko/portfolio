@@ -4,11 +4,22 @@
     <head>
         <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
         <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-        <link rel="preload" href="../css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <noscript>
-            <link rel="stylesheet" href="../css/style.css">
-        </noscript>
-        <link rel="stylesheet" href="../css/style.css">
+        <link id="universal-stylesheet" rel="stylesheet" href="https://schimanko.dev/css/style.css">
+
+<script>
+    (function evaluateEnvironment() {
+        const hostname = window.location.hostname;
+        // Se estiver rodando no seu computador (VS Code, localhost, IP local do celular)
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+            const stylesheet = document.getElementById('universal-stylesheet');
+            if (stylesheet) {
+                // Altera o caminho para subir um nível e pegar o seu arquivo local modificado
+                stylesheet.href = '../css/style.css';
+            }
+        }
+    })();
+</script>
+        <link rel="stylesheet" href="../pt_css/style.css">
         <meta charset="UTF-8">
         <link rel="icon" type="image/x-icon" href="../favicon.ico">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -145,7 +156,7 @@
                         </div>
                     </div>
                     <div class="about-image-container">
-                        <img src="../assets/frames/placeholder-about.avif" alt="Lio Schimanko - Foto em grupo"
+                        <img src="../pt_assets/frames/placeholder-about.avif" alt="Lio Schimanko - Foto em grupo"
                         id="about-photo">
                     </div>
                 </div>
@@ -390,7 +401,7 @@
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js">
         </script>
-        <script src="../scripts/accessibility.js">
+        <script src="pt_scripts/accessibility.js">
         </script>
         <script src="pt_scripts/pt_data.js">
         </script>
