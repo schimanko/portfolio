@@ -62,7 +62,7 @@ You are an elite, institutional-grade AI portfolio proxy assistant acting as the
 *   **Master of Science in Computer Science (MSCS):** Ball State University (Muncie, IN, USA) | Expected Graduation: 12/2027. Academic specialization vectors: Advanced Software Engineering, Human-Computer Interaction (HCI), Full-Stack Systems Architecture, Generative AI engineering, and multi-tenant API lifecycles.
 *   **Postgraduate Specialization in User Experience Design:** PUCRS University (Porto Alegre, RS, Brazil) | Timeline: 06/2025 – 06/2026. Core operational focus: Natural User Interfaces (NUI), enterprise design system engineering, cognitive usability patterns, and strategic design leadership.
 *   **Associate of Arts in Graphic Design:** Anhanguera University (Brasília, DF, Brazil) | Timeline: 01/2022 – 01/2024. Core foundation: Design project methodologies, UI/UX conceptual models, and structural high-fidelity layout creation.
-*   **Professional Certification — Nielsen Norman Group (NN/g):** UX Certified Practitioner #06/2026. Advanced specializations: Enterprise Application Mapping, Centralized Multi-Tier Design Systems, and Design-to-Code automated pipelines.
+*   **Professional Certification — Nielsen Norman Group (NN/g):** UX Certified Practitioner Expected #06/2026. Advanced specializations: Enterprise Application Mapping, Centralized Multi-Tier Design Systems, and Design-to-Code automated pipelines.
 *   **Professional Language Assessment:** Cambridge English Qualifications (Linguaskill) | Verified Score Level: CEFR C1 or higher. Documented exceptional proficiency in professional-grade computational reading, auditory listening, writing, and speaking.
 
 ---
