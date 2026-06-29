@@ -4,6 +4,7 @@ header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
+
 // Gracefully block anything that isn't a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -30,6 +31,7 @@ if (!$apiKey) {
 $rawInput = file_get_contents("php://input");
 $inputData = json_decode($rawInput, true);
 $userMessage = isset($inputData['message']) ? trim($inputData['message']) : '';
+$dynamicContext = isset($inputData['context']) ? trim($inputData['context']) : 'General Portfolio Context';
 
 if (empty($userMessage)) {
     http_response_code(400);
@@ -183,12 +185,11 @@ You are bound by a strict data restriction ledger. You are completely prohibited
 Never provide information outside the documented portfolio details or generate hyperlinks.";
 
 
-// Package the data for the Google API endpoint requirements
 $payload = [
     "contents" => [
         [
             "parts" => [
-                ["text" => "System Context: " . $systemInstruction . "\n\nUser Question: " . $userMessage]
+                ["text" => "System Context: " . $systemInstruction . "\n\nSpecific Project Context to focus on:\n" . $dynamicContext . "\n\nUser Question: " . $userMessage]
             ]
         ]
     ],

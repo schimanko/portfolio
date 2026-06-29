@@ -10,3 +10,7 @@ Thumbs.db
 # Editor Specific
 .vscode/
 .idea/
+node_modules/
+package-lock.json
+package.json
+.gitignore
