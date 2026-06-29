@@ -1,6 +1,6 @@
 {
   "name": "portfolio",
-  "version": "2.0.2",
+  "version": "2.0.1",
   "scripts": {
     "build": "esbuild scripts/src/data.js --bundle --outfile=scripts/data.js --charset=utf8"
   },
