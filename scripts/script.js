@@ -2175,7 +2175,7 @@ function initCaseSearch() {
             dotsContainer.classList.remove('search-active');
             autocompleteBox.classList.remove('show');
         }
-    });
+    }, true); // <-- Added 'true' to use the Capture Phase
 
     searchInput.addEventListener('mousedown', (e) => e.stopPropagation());
     searchInput.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
@@ -2905,14 +2905,28 @@ function initParagraphHover() {
         hoverMenu.style.visibility = 'visible';
     });
 
+    // A11y Helper Variable: Reusable wipe function for both mouse and keyboard events
+    const closeHoverMenus = () => {
+        document.querySelectorAll('.paragraph-hover-menu.show').forEach(menu => menu.classList.remove('show'));
+        document.querySelectorAll('.paragraph-hover-trigger.show').forEach(trigger => trigger.classList.remove('show'));
+    };
+
+    // 1. Mouse Capture
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.paragraph-hover-menu') && !e.target.closest('.paragraph-hover-trigger')) {
-            // Actively target and close ALL instances of dropdowns to ensure none are orphaned
-            document.querySelectorAll('.paragraph-hover-menu.show').forEach(menu => {
-                menu.classList.remove('show');
-            });
+            closeHoverMenus();
         }
-    });
+    }, true); // <-- 'true' forces execution in the Capture Phase
+
+    // 2. Keyboard A11y Capture 
+    document.addEventListener('keydown', (e) => {
+        // If a user navigates away or triggers an action using these structural keys, clear the menu
+        const structuralKeys = ['Enter', 'Escape', 'ArrowLeft', 'ArrowRight', ' ', 'Tab'];
+        
+        if (!e.target.closest('.paragraph-hover-menu') && structuralKeys.includes(e.key)) {
+            closeHoverMenus();
+        }
+    }, true); // <-- 'true' guarantees the menu closes before the video morph transition begins
 
     document.getElementById('ph-ask-ai').addEventListener('click', (e) => {
         e.stopPropagation();
