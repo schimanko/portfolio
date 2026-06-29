@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on a simple release log tailored to this app's public evolution.
 
+## [2.0.1] - 2026-06-29
+### Fixed
+- Fixed an accessibility edge case where the paragraph hover menu remained open after triggering video presentations via keyboard navigation (`Enter` key).
+- Resolved an issue with event bubbling inside the case reader overlay using a Capture Phase structural event wrapper.
+- Fixed a drop-down visibility bug inside the slider search autocomplete results wrapper.
+
 ## [2.0.0] - 2026-06-29
 ### Title
 Second Flight
