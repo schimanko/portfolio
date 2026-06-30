@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on a simple release log tailored to this app's public evolution.
 
+## [2.1.0] - 2026-06-30
+
+### Added
+- **Monolithic Script Deconstruction:** Split the core script file into distinct domain sub-modules (`state.js`, `player.js`, `interactions.js`) inside a new source subdirectory (`scripts/src/`) to maximize maintainability and simplify code regression tracking.
+- **Sequential State Pipeline:** Integrated a modular script execution layer inside `index.html` to inject code dependencies consecutively, allowing separate files to interact cleanly across views with zero load latency.
+
+### New file sctructure breakdown
+- `index.html` (The Assembly Core): Manages sequential dependency loading.
+- `scripts/src/state.js` (The Nervous System): Holds all DOM hooks, global variables, performance tracking configurations, runtime preferences, and view-transition routing utilities.
+- `scripts/src/player.js` (The Media Matrix): Manages HTML5 media lifecycles, WebVTT subtitle cue streams, playback speed mutations, and the Web Speech API TTS engine.
+- `scripts/src/interactions.js` (The Human Interface layer): Governs inertial drag physics, live Mermaid graph parsing, search query highlighting engines, and contextual paragraph interactive menus.
+- `scripts/script.js` (The Pipeline Bootloader): Initializes deep linking routers, asymmetric portfolio DOM factories, sliding pagination viewports, and core event interception.
+
 ## [2.0.2] - 2026-06-30
 
 ### Fixed
