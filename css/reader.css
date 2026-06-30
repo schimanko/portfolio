@@ -1753,6 +1753,17 @@ mark.search-highlight {
    transform: translateX(-50%) translateY(-2px);
 }
 
+/* --- Paragraph Deep Link Highlight --- */
+.paragraph-highlight {
+    animation: highlight-pulse 2.5s var(--ease-standard) forwards;
+    border-radius: var(--radius-sm);
+}
+
+@keyframes highlight-pulse {
+    0% { background-color: var(--color-gray-xlight); }
+    100% { background-color: transparent; }
+}
+
 /* ==========================================================================
    MOBILE RESPONSIVENESS (PORTFOLIO)
    ========================================================================== */

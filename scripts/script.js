@@ -991,16 +991,24 @@ function setupCaseScrollEffect(id) {
 const attachShareBtn = (container, item) => {
     const shareBtn = container.querySelector('.summary-share');
     if (shareBtn) {
+        shareBtn._defaultHTML = shareBtn.innerHTML; // Prevent state-lock race condition
+        
         shareBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            const url = `${window.location.origin}${window.location.pathname}?case=${item.slug || item.id}`;
+            
+            // Sync with current i18n selection
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentLang = urlParams.get('lang');
+            const langQuery = currentLang ? `&lang=${currentLang}` : '';
+            
+            const url = `${window.location.origin}${window.location.pathname}?case=${item.slug || item.id}${langQuery}`;
+            
             if (navigator.share) {
                 try { await navigator.share({ title: item.title, text: item.aiSummary, url: url }); } catch(err) {}
             } else {
                 navigator.clipboard.writeText(url);
-                const original = shareBtn.innerHTML;
-                shareBtn.innerHTML = t('copied');
-                setTimeout(() => shareBtn.innerHTML = original, 2000);
+                shareBtn.innerHTML = typeof t === 'function' ? t('copied') : 'Copied';
+                setTimeout(() => shareBtn.innerHTML = shareBtn._defaultHTML, 2000);
             }
         });
     }
@@ -2355,8 +2363,19 @@ if (homeBtnEl) {
         const currentView = document.body.getAttribute('data-active-view');
         
         if (currentView === 'player') {
-            document.getElementById('btn-stop').click();
+            const stopBtn = document.getElementById('btn-stop');
+            if (stopBtn) stopBtn.click();
             return;
+        }
+
+        // 2. Stateless Routing: Determine target based on context without mutating the history stack
+        let targetView = 'home';
+        if (currentView === 'about') {
+            // Find the last view they were on before 'about'
+            const priorView = viewHistory.slice().reverse().find(v => v !== 'about');
+            targetView = priorView || 'home';
+        } else if (currentView === 'case') {
+            targetView = 'home';
         }
         
         document.documentElement.classList.remove('slide-up-transition');
@@ -2370,13 +2389,16 @@ if (homeBtnEl) {
             prepareMorph(activeThumb, `media-${activeId}`, true);
         }
         
-        transitionTo('home', () => {
-            if (activeThumb) {
-                gallery.style.scrollBehavior = 'auto'; 
-                const thumbRect = activeThumb.getBoundingClientRect();
-                const galleryRect = gallery.getBoundingClientRect();
-                gallery.scrollLeft += (thumbRect.left + thumbRect.width / 2) - (galleryRect.left + galleryRect.width / 2);
-                setTimeout(() => { gallery.style.scrollBehavior = ''; }, 50);
+        transitionTo(targetView, () => {
+            if (targetView === 'home' && activeThumb) {
+                const galleryEl = document.getElementById('gallery');
+                if (galleryEl) {
+                    galleryEl.style.scrollBehavior = 'auto'; 
+                    const thumbRect = activeThumb.getBoundingClientRect();
+                    const galleryRect = galleryEl.getBoundingClientRect();
+                    galleryEl.scrollLeft += (thumbRect.left + thumbRect.width / 2) - (galleryRect.left + galleryRect.width / 2);
+                    setTimeout(() => { galleryEl.style.scrollBehavior = ''; }, 50);
+                }
             }
         }); 
     });
@@ -2774,6 +2796,7 @@ function rebuildTOC(slide) {
 function initDeepLinkingAndResume() {
     const urlParams = new URLSearchParams(window.location.search);
     const targetCaseId = window.location.hash.replace('#', '') || urlParams.get('case');
+    const targetPIndex = urlParams.get('p'); // Capture specific paragraph
 
     if (targetCaseId) {
         const targetIndex = portfolioCases.findIndex(c => c.slug === targetCaseId || c.id === targetCaseId);
@@ -2781,7 +2804,38 @@ function initDeepLinkingAndResume() {
             document.documentElement.classList.add('bypassed-entrance');
             setTimeout(() => {
                 const thumb = document.querySelector(`.case-thumb-wrapper[data-case-id="${portfolioCases[targetIndex].id}"]`);
-                if (thumb) openCaseView(portfolioCases[targetIndex], thumb, targetIndex);
+                if (thumb) {
+                    openCaseView(portfolioCases[targetIndex], thumb, targetIndex);
+                    
+                    if (targetPIndex !== null) {
+                        setTimeout(() => {
+                            const descBody = document.querySelector(`.case-slide-wrapper[data-case-id="${portfolioCases[targetIndex].id}"] .case-description-body`);
+                            if (descBody) {
+                                const paragraphs = Array.from(descBody.querySelectorAll('p'));
+                                const targetParagraph = paragraphs[parseInt(targetPIndex, 10)];
+                                
+                                if (targetParagraph) {
+                                    const scrollContainer = document.getElementById(`scroll-${portfolioCases[targetIndex].id}`);
+                                    if (scrollContainer) {
+                                        const containerTop = scrollContainer.getBoundingClientRect().top;
+                                        const pTop = targetParagraph.getBoundingClientRect().top;
+                                        const currentScroll = scrollContainer.scrollTop;
+                                        
+                                        scrollContainer.scrollTo({ top: currentScroll + (pTop - containerTop) - 100, behavior: 'smooth' });
+                                        
+                                        targetParagraph.classList.add('paragraph-highlight');
+                                        targetParagraph.setAttribute('aria-current', 'true');
+                                        
+                                        setTimeout(() => {
+                                            targetParagraph.classList.remove('paragraph-highlight');
+                                            targetParagraph.removeAttribute('aria-current');
+                                        }, 2500);
+                                    }
+                                }
+                            }
+                        }, 1200); // Allow DOM animations/morphs to finish safely
+                    }
+                }
             }, 100);
             return;
         }
@@ -2894,6 +2948,11 @@ function initParagraphHover() {
 
     hoverTrigger.addEventListener('click', (e) => {
         e.stopPropagation();
+        
+        // Force-reset copy button text state every time menu opens
+        const btnLink = document.getElementById('ph-link');
+        if (btnLink && btnLink._defaultHTML) btnLink.innerHTML = btnLink._defaultHTML;
+
         hoverMenu.style.visibility = 'hidden';
         hoverMenu.classList.add('show');
         
@@ -2911,9 +2970,14 @@ function initParagraphHover() {
         document.querySelectorAll('.paragraph-hover-trigger.show').forEach(trigger => trigger.classList.remove('show'));
     };
 
+    // A11y Helper Variable: Reusable robust checker to prevent TypeErrors if target is the Document node
+    const isTargetInsideClass = (target, className) => {
+        return target && typeof target.closest === 'function' && target.closest(className);
+    };
+
     // 1. Mouse Capture
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.paragraph-hover-menu') && !e.target.closest('.paragraph-hover-trigger')) {
+        if (!isTargetInsideClass(e.target, '.paragraph-hover-menu') && !isTargetInsideClass(e.target, '.paragraph-hover-trigger')) {
             closeHoverMenus();
         }
     }, true); // <-- 'true' forces execution in the Capture Phase
@@ -2923,108 +2987,151 @@ function initParagraphHover() {
         // If a user navigates away or triggers an action using these structural keys, clear the menu
         const structuralKeys = ['Enter', 'Escape', 'ArrowLeft', 'ArrowRight', ' ', 'Tab'];
         
-        if (!e.target.closest('.paragraph-hover-menu') && structuralKeys.includes(e.key)) {
+        if (!isTargetInsideClass(e.target, '.paragraph-hover-menu') && structuralKeys.includes(e.key)) {
             closeHoverMenus();
         }
     }, true); // <-- 'true' guarantees the menu closes before the video morph transition begins
 
-    document.getElementById('ph-ask-ai').addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (activeHoverParagraph && activeCaseData) {
-            const textSnippet = activeHoverParagraph.innerText.substring(0, 80) + '...';
-            hoverMenu.classList.remove('show');
-            
-            window.openInlineChat(activeCaseData.id);
-            setTimeout(() => {
-                const chatInput = document.getElementById(`inline-chat-input-${activeCaseData.id}`);
-                if (chatInput) {
-                    chatInput.value = `${t('explain_part')} "${textSnippet}"`;
-                    chatInput.focus();
-                }
-            }, 50);
-        }
-    });
+    const btnAskAi = document.getElementById('ph-ask-ai');
+    if (btnAskAi) {
+        btnAskAi.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (activeHoverParagraph && activeCaseData) {
+                const textSnippet = activeHoverParagraph.innerText.substring(0, 80) + '...';
+                hoverMenu.classList.remove('show');
+                
+                window.openInlineChat(activeCaseData.id);
+                setTimeout(() => {
+                    const chatInput = document.getElementById(`inline-chat-input-${activeCaseData.id}`);
+                    if (chatInput) {
+                        chatInput.value = `${t('explain_part')} "${textSnippet}"`;
+                        chatInput.focus();
+                    }
+                }, 50);
+            }
+        });
+    }
 
-    document.getElementById('ph-read-aloud').addEventListener('click', () => {
-        if (activeHoverParagraph && window.speechSynthesis) {
-            window.speechSynthesis.cancel(); 
-            const text = activeHoverParagraph.innerText;
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = typeof currentTTSRate !== 'undefined' ? currentTTSRate : 1.0;
-            window.speechSynthesis.speak(utterance);
-            hoverMenu.classList.remove('show');
-        }
-    });
+    const btnReadAloud = document.getElementById('ph-read-aloud');
+    if (btnReadAloud) {
+        btnReadAloud.addEventListener('click', () => {
+            if (activeHoverParagraph && window.speechSynthesis) {
+                window.speechSynthesis.cancel(); 
+                const text = activeHoverParagraph.innerText;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = typeof currentTTSRate !== 'undefined' ? currentTTSRate : 1.0;
+                window.speechSynthesis.speak(utterance);
+                hoverMenu.classList.remove('show');
+            }
+        });
+    }
 
     let autoScrollId;
-    document.getElementById('ph-autoscroll').addEventListener('click', () => {
-        if (!activeHoverParagraph) return;
-        hoverMenu.classList.remove('show');
+    const btnAutoScroll = document.getElementById('ph-autoscroll');
+    if (btnAutoScroll) {
+        btnAutoScroll.addEventListener('click', () => {
+            if (!activeHoverParagraph) return;
+            hoverMenu.classList.remove('show');
+            
+            const scrollContainer = activeHoverParagraph.closest('.case-info-scroll');
+            if (!scrollContainer) return;
+
+            activeHoverParagraph.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            setTimeout(() => {
+                let isAutoScrolling = true;
+                
+                const scrollStep = () => {
+                    if (!isAutoScrolling) return;
+                    scrollContainer.scrollTop += 0.8; 
+                    autoScrollId = requestAnimationFrame(scrollStep);
+                };
+                scrollStep();
+
+                const killScroll = () => {
+                    isAutoScrolling = false;
+                    cancelAnimationFrame(autoScrollId);
+                    scrollContainer.removeEventListener('wheel', killScroll);
+                    scrollContainer.removeEventListener('touchstart', killScroll);
+                    scrollContainer.removeEventListener('mousedown', killScroll);
+                };
+
+                scrollContainer.addEventListener('wheel', killScroll, { passive: true });
+                scrollContainer.addEventListener('touchstart', killScroll, { passive: true });
+                scrollContainer.addEventListener('mousedown', killScroll, { passive: true });
+            }, 600); 
+        });
+    }
+
+    let copyTimeout;
+    const btnLink = document.getElementById('ph-link');
+    
+    if (btnLink) {
+        btnLink._defaultHTML = btnLink.innerHTML; 
         
-        const scrollContainer = activeHoverParagraph.closest('.case-info-scroll');
-        if (!scrollContainer) return;
+        btnLink.addEventListener('click', () => {
+            if (activeCaseData && activeHoverParagraph) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentLang = urlParams.get('lang');
+                const langQuery = currentLang ? `&lang=${currentLang}` : '';
+                
+                const descBody = activeHoverParagraph.closest('.case-description-body');
+                const pIndex = descBody ? Array.from(descBody.querySelectorAll('p')).indexOf(activeHoverParagraph) : 0;
+                
+                const url = `${window.location.origin}${window.location.pathname}?case=${activeCaseData.slug || activeCaseData.id}${langQuery}&p=${pIndex}`;
+                navigator.clipboard.writeText(url);
+                
+                btnLink.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> ${typeof t === 'function' ? t('copied') : 'Copied'}`;
+                
+                clearTimeout(copyTimeout);
+                copyTimeout = setTimeout(() => { 
+                    btnLink.innerHTML = btnLink._defaultHTML; 
+                    hoverMenu.classList.remove('show'); 
+                }, 1500);
+            }
+        });
+    }
 
-        activeHoverParagraph.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const btnEmail = document.getElementById('ph-email');
+    if (btnEmail) {
+        btnEmail.addEventListener('click', () => {
+            if (activeHoverParagraph && activeCaseData) {
+                let text = activeHoverParagraph.innerText.substring(0, 150);
+                if (activeHoverParagraph.innerText.length > 150) text += '...';
+                window.location.href = `mailto:hello@schimanko.dev?subject=${typeof t === 'function' ? t('email_subject') : 'Regarding'} ${activeCaseData.title}&body=${typeof t === 'function' ? t('email_body') : ''}%0D%0A%0D%0A"${encodeURIComponent(text)}"%0D%0A%0D%0A`;
+                hoverMenu.classList.remove('show');
+            }
+        });
+    }
 
-        setTimeout(() => {
-            let isAutoScrolling = true;
-            
-            const scrollStep = () => {
-                if (!isAutoScrolling) return;
-                scrollContainer.scrollTop += 0.8; 
-                autoScrollId = requestAnimationFrame(scrollStep);
-            };
-            scrollStep();
+    const btnShare = document.getElementById('ph-share');
+    if (btnShare) {
+        btnShare.addEventListener('click', async () => {
+            if (activeCaseData && activeHoverParagraph) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentLang = urlParams.get('lang');
+                const langQuery = currentLang ? `&lang=${currentLang}` : '';
+                
+                const descBody = activeHoverParagraph.closest('.case-description-body');
+                const pIndex = descBody ? Array.from(descBody.querySelectorAll('p')).indexOf(activeHoverParagraph) : 0;
+                
+                const url = `${window.location.origin}${window.location.pathname}?case=${activeCaseData.slug || activeCaseData.id}${langQuery}&p=${pIndex}`;
 
-            const killScroll = () => {
-                isAutoScrolling = false;
-                cancelAnimationFrame(autoScrollId);
-                scrollContainer.removeEventListener('wheel', killScroll);
-                scrollContainer.removeEventListener('touchstart', killScroll);
-                scrollContainer.removeEventListener('mousedown', killScroll);
-            };
-
-            scrollContainer.addEventListener('wheel', killScroll, { passive: true });
-            scrollContainer.addEventListener('touchstart', killScroll, { passive: true });
-            scrollContainer.addEventListener('mousedown', killScroll, { passive: true });
-        }, 600); 
-    });
-
-    document.getElementById('ph-link').addEventListener('click', () => {
-        if (activeCaseData) {
-            const url = `${window.location.origin}${window.location.pathname}?case=${activeCaseData.slug || activeCaseData.id}`;
-            navigator.clipboard.writeText(url);
-            
-            const btn = document.getElementById('ph-link');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> ${t('copied')}`;
-            setTimeout(() => { btn.innerHTML = originalText; hoverMenu.classList.remove('show'); }, 1500);
-        }
-    });
-
-    document.getElementById('ph-email').addEventListener('click', () => {
-        if (activeHoverParagraph && activeCaseData) {
-            let text = activeHoverParagraph.innerText.substring(0, 150);
-            if (activeHoverParagraph.innerText.length > 150) text += '...';
-            window.location.href = `mailto:hello@schimanko.dev?subject=${t('email_subject')} ${activeCaseData.title}&body=${t('email_body')}%0D%0A%0D%0A"${encodeURIComponent(text)}"%0D%0A%0D%0A`;
-            hoverMenu.classList.remove('show');
-        }
-    });
-
-    document.getElementById('ph-share').addEventListener('click', async () => {
-        if (activeCaseData && navigator.share) {
-            try {
-                await navigator.share({
-                    title: activeCaseData.title,
-                    text: t('share_text'),
-                    url: `${window.location.origin}${window.location.pathname}?case=${activeCaseData.id}`
-                });
-            } catch(err) {}
-            hoverMenu.classList.remove('show');
-        } else {
-            document.getElementById('ph-link').click();
-        }
-    });
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: activeCaseData.title,
+                            text: typeof t === 'function' ? t('share_text') : 'Check this out',
+                            url: url
+                        });
+                    } catch(err) {}
+                    hoverMenu.classList.remove('show');
+                } else {
+                    if (btnLink) btnLink.click();
+                }
+            }
+        });
+    }
 }
 
 initParagraphHover();
