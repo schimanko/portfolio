@@ -183,6 +183,12 @@ function setupCaseScrollEffect(id) {
     const handleScroll = (e) => {
         const scrollTop = e.target.scrollTop;
 
+        // Force-close any open paragraph contextual menus on scroll
+        const activeHoverMenu = document.querySelector('.paragraph-hover-menu.show');
+        const activeTrigger = document.querySelector('.paragraph-hover-trigger.show');
+        if (activeHoverMenu) activeHoverMenu.classList.remove('show');
+        if (activeTrigger) activeTrigger.classList.remove('show');
+
         layout.classList.add('is-scrolling');
         document.body.classList.add('is-scrolling-case'); 
 
@@ -748,15 +754,23 @@ function initDeepLinkingAndResume() {
         if (caseData) {
             const toast = document.createElement('div');
             toast.className = 'resume-reading-toast';
+            
+            // A11Y: Establish proper button roles and keyboard focus
+            toast.setAttribute('role', 'button');
+            toast.setAttribute('tabindex', '0');
+            toast.setAttribute('aria-label', `${t('resume_reading')} ${caseData.title}`);
+            
+            // i18n variables successfully retained and ARIA hidden applied to raw text to avoid screen reader duplication
             toast.innerHTML = `
-                <span>${t('resume_reading')} <strong>${caseData.title}</strong></span> 
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                <span aria-hidden="true">${t('resume_reading')} <strong>${caseData.title}</strong></span> 
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             `;
             document.body.appendChild(toast);
             
             setTimeout(() => toast.classList.add('show'), 1500);
 
-            toast.addEventListener('click', () => {
+            // Extracted logic so it can be called by both pointer and keyboard
+            const triggerResume = () => {
                 toast.classList.remove('show');
                 document.documentElement.classList.add('bypassed-entrance');
                 const targetIndex = portfolioCases.findIndex(c => c.id === caseData.id);
@@ -768,6 +782,16 @@ function initDeepLinkingAndResume() {
                     const scrollEl = document.getElementById(`scroll-${caseData.id}`);
                     if (scrollEl) scrollEl.scrollTo({ top: parseInt(resumeScrollTop), behavior: 'smooth' });
                 }, 800);
+            };
+
+            toast.addEventListener('click', triggerResume);
+            
+            // A11Y: Bind keyboard execution logic
+            toast.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerResume();
+                }
             });
 
             setTimeout(() => {

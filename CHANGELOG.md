@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on a simple release log tailored to this app's public evolution.
 
+## [2.1.1] - 2026-06-30
+
+## Fixed
+- Contextual Menu Positioning: Added relative positioning to case-description-body paragraphs and headings in reader.css, ensuring the absolute-positioned context menu icons remain anchored to their respective text blocks during scroll.
+- Scroll-Induced Interaction Cleanup: Implemented a scroll-event interceptor in script.js that force-closes any active contextual menu triggers and popups the moment the user initiates a scroll action, preventing orphaned UI elements.
+- "Pick up where you left off" Toast Overlays: Adjusted the resume-reading-toast z-index and interaction states in reader.css to ensure it correctly respects the modal stacking context, blurring and becoming unclickable when the glass overlay is active.
+- Toast Accessibility: Upgraded the "Resume Reading" toast in script.js to be keyboard-accessible by assigning proper role="button" and tabindex attributes, and binding native Enter/Space key event listeners.
+
 ## [2.1.0] - 2026-06-30
 
 ### Added

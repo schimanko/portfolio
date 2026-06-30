@@ -218,7 +218,8 @@
     width: 44px;
     height: 44px;
     justify-content: flex-start;
-    z-index: var(--z-overlay);
+    /* Map natively to the design token setup below the default modal layer stack */
+    z-index: 1400;
     view-transition-name: back-btn-view;
 }
 
@@ -486,7 +487,8 @@ body.modal-open .top-actions-right > *:not(.active-modal-wrapper):not(.active-mo
 }
 
 body.modal-open .floating-back-btn {
-    z-index: auto;
+    /* Lower z-index below glass overlay (1500), forcing it behind the overlay window visually and physically */
+    z-index: 1400 !important;
     filter: blur(4px);
     opacity: 0.5;
     pointer-events: none;
@@ -498,6 +500,14 @@ body.modal-open #top-breadcrumb {
     opacity: 0.5;
     pointer-events: none;
     transition: none !important; /* Removes breadcrumb transition */
+}
+
+/* Visually pushes the home/back button behind the glass overlay and prevents clicks */
+body.modal-open .floating-home-btn {
+    filter: blur(4px);
+    opacity: 0.5;
+    pointer-events: none;
+    transition: all var(--speed-normal) var(--ease-standard);
 }
 
 body.modal-open .floating-ai-btn {

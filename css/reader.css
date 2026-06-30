@@ -1641,6 +1641,18 @@ mark.search-highlight {
    transform: translateX(0);
 }
 
+/* Anchors the absolute-positioned hover trigger to stick precisely to its paragraph */
+.case-description-body p,
+.case-description-body h3 {
+    position: relative;
+}
+
+.paragraph-hover-trigger {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+}
+
 .paragraph-hover-trigger {
    position: absolute;
    width: 36px;
@@ -1751,6 +1763,15 @@ mark.search-highlight {
 
 .resume-reading-toast:hover {
    transform: translateX(-50%) translateY(-2px);
+}
+
+/* Pushes the resume toast behind the modal glass overlay (1500) and disables interactions */
+body.modal-open .resume-reading-toast {
+   z-index: 1400 !important;
+   filter: blur(4px);
+   opacity: 0.5;
+   pointer-events: none;
+   transition: all var(--speed-normal) var(--ease-standard);
 }
 
 /* --- Paragraph Deep Link Highlight --- */
