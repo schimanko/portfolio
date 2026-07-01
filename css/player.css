@@ -113,7 +113,9 @@ body.player-active #progress-container.is-dragging #progress-handle {
    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
    letter-spacing: 0.01em;
 }
-
+body.modal-open #progress-container {
+   z-index: 1400 !important;
+}
 .progress-tutorial.show {
    opacity: 1;
    visibility: visible;
@@ -191,6 +193,7 @@ body.player-active #progress-container.is-dragging #progress-handle {
 #btn-cc {
    transition: transform var(--speed-fast) var(--ease-standard);
 }
+
 
 .video-loader {
    position: absolute;

@@ -80,6 +80,33 @@ html.a11y-dark-mode .ai-summary-btn:hover {
     color: var(--color-white);
 }
 /* DOTS */
+
+/* --- Protected Case UI (Dark Mode) --- */
+html.a11y-dark-mode .protected-case-card {
+    background: var(--color-card-bg);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.a11y-dark-mode .protected-case-icon,
+html.a11y-dark-mode .protected-case-title {
+    color: var(--color-white);
+}
+
+html.a11y-dark-mode .protected-case-desc {
+    color: var(--color-gray-med);
+}
+
+html.a11y-dark-mode .protected-case-input {
+    background: var(--color-bg);
+    color: var(--color-white); /* Fixes the invisible dots */
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+html.a11y-dark-mode .protected-case-btn {
+    background: var(--color-white);
+    color: var(--color-bg); /* Inverts button for contrast */
+}
+
 html.a11y-dark-mode .slider-dot {
     background-color: rgba(255, 255, 255, 0.2);
 }
@@ -88,7 +115,8 @@ html.a11y-dark-mode .slider-dot.active {
     background-color: var(--color-white);
 }
 html.a11y-dark-mode .case-asset-box,
-html.a11y-dark-mode .combo-asset-card {
+html.a11y-dark-mode .combo-asset-card,
+html.a11y-dark-mode .video-loader {
     background-color: var(--color-card-bg);
 }
 
@@ -487,15 +515,16 @@ html.a11y-dark-mode .ph-divider {
 /* High Contrast States */
 html.a11y-high-contrast #font-normal, 
 html.a11y-high-contrast #font-large {
-    border: 2px solid var(--color-black) !important;
+    border: none !important;
     color: var(--color-black) !important;
-    background-color: var(--color-white) !important;
+    background-color: transparent !important;
 }
 
-html.a11y-high-contrast #font-normal:hover, 
-html.a11y-high-contrast #font-large:hover {
+html.a11y-high-contrast #font-normal.active, 
+html.a11y-high-contrast #font-large.active {
     background-color: var(--color-black) !important;
-    color: var(--color-white) !important;
+    color: var(--color-bg) !important;
+    border: none !important;
 }
 
 html.a11y-high-contrast .ios-switch {
@@ -585,14 +614,38 @@ html.a11y-high-contrast .gallery-pill {
 }
 
 html.a11y-high-contrast .control-btn {
-    border: 2px solid var(--color-black) !important;
-    border-radius: var(--radius-circle) !important;
+    border: none !important;
+    border-radius: var(--radius-circle);
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* General Deactivated State */
+.ios-switch.deactivated {
+    background: transparent !important;
+    border: 2px dotted var(--color-gray-med) !important;
+    opacity: 0.5;
+}
+
+
+/* High Contrast Toggle Fixes */
+html.a11y-high-contrast .ios-switch {
+    background: var(--color-bg) !important;
+    border: 2px solid var(--color-white) !important;
+    box-shadow: none !important;
+}
+
+html.a11y-high-contrast .toggle-label input:checked + .ios-switch {
+    background: var(--color-white) !important;
+}
+
+html.a11y-high-contrast .toggle-label input:checked + .ios-switch::after {
     background: var(--color-bg) !important;
 }
 
 html.a11y-high-contrast .control-btn svg circle[fill="white"],
 html.a11y-high-contrast .control-btn svg circle.a11y-circle-fill {
-    fill: transparent !important;
+    fill: var(--color-black) !important;
     stroke: transparent !important;
 }
 
@@ -600,13 +653,13 @@ html.a11y-high-contrast .control-btn svg path[fill="black"],
 html.a11y-high-contrast .control-btn svg rect[fill="black"],
 html.a11y-high-contrast .control-btn svg text[fill="black"],
 html.a11y-high-contrast .control-btn svg text.a11y-text-fill {
-    fill: var(--color-black) !important;
+    fill: var(--color-bg) !important;
     stroke: transparent !important;
 }
 
 html.a11y-high-contrast .control-btn svg path[stroke="black"],
 html.a11y-high-contrast .control-btn svg line[stroke="black"] {
-    stroke: var(--color-black) !important;
+    stroke: var(--color-bg) !important;
     fill: transparent !important;
 }
 
@@ -632,9 +685,15 @@ html.a11y-high-contrast .ai-summary-btn svg {
 html.a11y-high-contrast .case-asset-box,
 html.a11y-high-contrast .storage-card,
 html.a11y-high-contrast .dark-info-card,
-html.a11y-high-contrast .telemetry-pill {
+html.a11y-high-contrast .telemetry-pill,
+html.a11y-high-contrast .video-loader {
     background-color: var(--color-black) !important;
     border: 2px solid var(--color-white) !important;
+}
+
+/* Forces the spinner stroke to be true black in High Contrast */
+html.a11y-high-contrast .video-loader {
+    color: var(--color-bg) !important;
 }
 
 html.a11y-high-contrast .btn-play-pill span,
@@ -661,13 +720,16 @@ html.a11y-high-contrast .a11y-header {
 }
 
 html.a11y-high-contrast .lang-btn.active {
-    border: 2px solid var(--color-white);
+    border: none !important;
+    background: var(--color-black) !important;
+    color: var(--color-bg) !important;
 }
 
 html.a11y-high-contrast .toggle-group,
 html.a11y-high-contrast .ios-switch {
-    background: var(--color-bg);
-    border: 2px solid var(--color-white);
+    background: var(--color-bg) !important;
+    border: none !important;
+    box-shadow: inset 0 0 0 2px var(--color-black) !important;
 }
 
 html.a11y-high-contrast .ios-switch::after {
@@ -718,27 +780,6 @@ html.a11y-dark-mode .a11y-stroke {
 
 html.a11y-dark-mode .a11y-text-stroke {
     fill: var(--color-black) !important;
-}
-
-/* --- High Contrast Player Controls Override --- */
-html.a11y-high-contrast .control-btn .a11y-fill {
-    fill: var(--color-black) !important; 
-}
-
-html.a11y-high-contrast .control-btn .a11y-text-fill {
-    fill: var(--color-bg) !important; 
-}
-
-html.a11y-high-contrast .control-btn .a11y-stroke {
-    stroke: var(--color-black) !important; 
-}
-
-html.a11y-high-contrast .control-btn .a11y-text-stroke {
-    fill: var(--color-black) !important; 
-}
-
-html.a11y-high-contrast .control-btn svg path {
-    fill: var(--color-black) !important; 
 }
 
 /* --- LARGE TEXT MODE --- */
@@ -794,6 +835,36 @@ html.a11y-large-text .case-caption {
 html.a11y-large-text .custom-subtitle {
     font-size: 24px !important;
     line-height: 1.2;
+}
+
+/* --- Protected Case UI (High Contrast) --- */
+html.a11y-high-contrast .protected-case-card {
+    background-color: var(--color-bg) !important;
+    border: 2px solid var(--color-black) !important;
+}
+
+html.a11y-high-contrast .protected-case-icon,
+html.a11y-high-contrast .protected-case-title,
+html.a11y-high-contrast .protected-case-desc {
+    color: var(--color-black) !important;
+}
+
+html.a11y-high-contrast .protected-case-input {
+    background-color: var(--color-bg) !important;
+    color: var(--color-black) !important; /* Fixes the invisible dots */
+    border: 2px solid var(--color-black) !important;
+}
+
+html.a11y-high-contrast .protected-case-input::placeholder {
+    color: var(--color-black) !important;
+    opacity: 0.8 !important;
+}
+
+html.a11y-high-contrast .protected-case-btn {
+    background-color: var(--color-black) !important;
+    color: var(--color-bg) !important;
+    border: 2px solid var(--color-black) !important;
+    font-weight: 800 !important;
 }
 
 @media (max-width: 768px) {

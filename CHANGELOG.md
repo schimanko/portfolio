@@ -1,8 +1,27 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/), following the Categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed` and `Security.` 
 
 The format is based on a simple release log tailored to this app's public evolution.
+
+
+
+## [2.1.2] - 2026-06-30
+
+## Fixed 
+### Animations
+- Accelerator "Pick up where you left off" Toast Overlay: removed `filter`, `opacity`, `pointer-event` and `transition` properties that were causing friction in microinteraction animation (briefly after a modal is opened).
+    - Fixed a temporary horizontal shift triggered by clicking on a thumbnail mid Accelerator entrance animation, caused by `transform: translateX(-50%)` inside `.resume-reading-toast`.
+- `.progress-tutorial` onboarding player toast was showing above the glass overlay, corrected by adding `z-index: 1400 !important;` inside `body.modal-open #progress-container`.
+- Auto-scroll after clicking on TOC item sometimes pushed the item too far above or below the fold.
+- The lines ( - ) of the last title inside the contracted TOC weren't being highlighted.
+### Design 
+- Issue where the loading spinner and background were not visible, when on Player View (automatic Dark Mode).
+### A11Y
+- Password dots `••••••` and Protected Case container elements not a11y compliant (Dark Mode, High Contrast mode).
+- Player button controls color bug and label displacement in High Contrast mode.
+- Accessibility menu components (toggles) not compliant in High Contrast mode.
+
 
 ## [2.1.1] - 2026-06-30
 

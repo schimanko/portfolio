@@ -666,7 +666,9 @@ function rebuildTOC(slide) {
             const containerTop = scrollContainer.getBoundingClientRect().top;
             const h3Top = h3.getBoundingClientRect().top;
             const currentScroll = scrollContainer.scrollTop;
-            const targetPos = currentScroll + (h3Top - containerTop) - 80; 
+            
+            // We set the target to 180px from the top to safely clear the top header UI and max padding
+            const targetPos = currentScroll + (h3Top - containerTop) - 180; 
             
             scrollContainer.scrollTo({ top: targetPos, behavior: 'smooth' });
         });
@@ -685,8 +687,16 @@ function rebuildTOC(slide) {
 
             currentHeadings.forEach((h3, i) => {
                 const h3Top = h3.getBoundingClientRect().top;
-                if ((h3Top - containerTop) <= 120) { currentActive = i + 1; }
+                // We check against 195px (180px scroll offset + 15px buffer) so it highlights perfectly on arrival
+                if ((h3Top - containerTop) <= 195) { currentActive = i + 1; }
             });
+            
+            const scrollDifference = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
+            const isAtBottom = scrollDifference <= 25;
+            
+            if (isAtBottom && currentHeadings.length > 0) {
+                currentActive = currentHeadings.length;
+            }
             
             const tocItems = currentToc.querySelectorAll('.toc-item');
             tocItems.forEach(item => item.classList.remove('active'));
