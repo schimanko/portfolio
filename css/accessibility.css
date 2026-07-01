@@ -22,6 +22,14 @@ html.a11y-dark-mode .slider-dots-container {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+html.a11y-dark-mode .drag-tutorial {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html.a11y-dark-mode .progress-tutorial{
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 html.a11y-dark-mode .slider-dots-container:active,
 html.a11y-dark-mode .slider-dots-container.is-scrubbing {
     background: rgba(28, 28, 30, 0.85);
@@ -285,6 +293,8 @@ html.a11y-dark-mode .play-icon-circle svg path {
     opacity: 0.5;
 }
 
+
+
 /* --- HIGH CONTRAST MODE --- */
 html.a11y-high-contrast {
     --color-bg: #000000;
@@ -298,6 +308,14 @@ html.a11y-high-contrast {
     --color-player-bg: #000000;
     --color-kbd-border: #FFFFFF;
     --color-tooltip-kbd-border: #FFFFFF;
+}
+
+html.a11y-high-contrast .drag-tutorial {
+    border: 1px solid white;
+}
+
+html.a11y-high-contrast .progress-tutorial{
+    border: 1px solid white;
 }
 
 /* High Contrast Player Overrides */

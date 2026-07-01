@@ -8,6 +8,7 @@ function openCaseView(caseData, clickedThumbEl, index) {
     document.documentElement.classList.add('slide-up-transition');
     document.documentElement.classList.remove('slide-down-transition');
 
+    // Only keep the TOC peek animation here
     if (!sessionStorage.getItem('hasSeenTocPeek')) {
         setTimeout(() => {
             const activeToc = document.querySelector(`.case-slide-wrapper[data-case-id="${caseData.id}"] .case-toc`);
@@ -16,33 +17,9 @@ function openCaseView(caseData, clickedThumbEl, index) {
                 setTimeout(() => {
                     activeToc.classList.remove('is-peeking');
                     sessionStorage.setItem('hasSeenTocPeek', 'true');
-                    
-                    if (!sessionStorage.getItem('hasSeenCaseDragTutorial')) {
-                        setTimeout(() => {
-                            const dragTut = document.getElementById('drag-tutorial');
-                            if (dragTut) {
-                                dragTut.classList.add('show');
-                                setTimeout(() => {
-                                    dragTut.classList.remove('show');
-                                    sessionStorage.setItem('hasSeenCaseDragTutorial', 'true');
-                                }, 4000);
-                            }
-                        }, 800); 
-                    }
                 }, 1600); 
             }
         }, 800); 
-    } else if (!sessionStorage.getItem('hasSeenCaseDragTutorial')) {
-        setTimeout(() => {
-            const dragTut = document.getElementById('drag-tutorial');
-            if (dragTut) {
-                dragTut.classList.add('show');
-                setTimeout(() => {
-                    dragTut.classList.remove('show');
-                    sessionStorage.setItem('hasSeenCaseDragTutorial', 'true');
-                }, 4000);
-            }
-        }, 1500);
     }
 
     const updateDOMAndScroll = () => {
@@ -117,17 +94,6 @@ window.triggerAiTyping = function(container) {
                     if (metricsGrid) {
                         metricsGrid.classList.add('show-grid');
                         metricsGrid.querySelectorAll('.summary-metric-card').forEach((c, i) => setTimeout(() => c.classList.add('show'), 50 + (i * 150)));
-                        
-                        setTimeout(() => {
-                            if (!sessionStorage.getItem('hasSeenCaseDragTutorial')) {
-                                const dragTut = document.getElementById('drag-tutorial');
-                                if (dragTut) {
-                                    dragTut.classList.add('show');
-                                    setTimeout(() => dragTut.classList.remove('show'), 4000);
-                                }
-                                sessionStorage.setItem('hasSeenCaseDragTutorial', 'true');
-                            }
-                        }, 800);
                     }
                 }
             }
@@ -202,15 +168,21 @@ function setupCaseScrollEffect(id) {
             layout.classList.add('is-scrolled');
             document.body.classList.add('case-is-scrolled');
 
+            // Check if they haven't seen it yet
             if (!sessionStorage.getItem('hasSeenCaseDragTutorial')) {
+                
+                // 1. Immediately mark it as seen so continuous scrolling doesn't fire multiple timers
+                sessionStorage.setItem('hasSeenCaseDragTutorial', 'true');
+                
+                // 2. Wait 3 seconds (3000ms) before showing the tutorial
                 setTimeout(() => {
                     const dragTut = document.getElementById('drag-tutorial');
                     if (dragTut) {
                         dragTut.classList.add('show');
+                        // Hide it again 4 seconds after it appears
                         setTimeout(() => dragTut.classList.remove('show'), 4000);
                     }
-                    sessionStorage.setItem('hasSeenCaseDragTutorial', 'true');
-                }, 500); 
+                }, 3000); // <-- Adjust this number (in milliseconds) for your desired delay
             }
 
             localStorage.setItem('resumeCaseId', id);

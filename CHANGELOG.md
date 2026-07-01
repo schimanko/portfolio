@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file. The format 
 
 The format is based on a simple release log tailored to this app's public evolution.
 
+## [2.1.3] - 2026-06-30
+
+## Fixed 
+### Animations
+- "Swipe to explore cases" onboarding appearing without first scroll. Now, it appears a few seconds after the first scroll of the session.
+### Design
+- Reader View not perfectly aligning with the center of the viewport, a few pixels to the right.
+- Onboarding tutorials `drag-tutorial` and `progress-tutorial` not A11Y compliant.
 
 
 ## [2.1.2] - 2026-06-30

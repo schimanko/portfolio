@@ -329,7 +329,9 @@ html.bypassed-entrance .gallery-item {
 }
 
 .case-layout.is-scrolled .case-info-container {
-   max-width: 800px;
+   max-width: 63vw;
+   /* 5vw is exactly 72px on a standard 1440px laptop, and scales smoothly with the screen */
+   padding-right: clamp(40px, 5vw, 100px);
 }
 
 .case-year-label {
@@ -1534,6 +1536,7 @@ mark.search-highlight {
    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
    white-space: nowrap;
    z-index: 35;
+   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .drag-tutorial.show {
