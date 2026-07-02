@@ -3,7 +3,7 @@ export const cassi = {
         id: "cassi",
         slug: "us400k-redesign",
         year: _t("2022 ∙ CASSI", "2022 ∙ CASSI"),
-        isProtected: true,
+        audioSrc: _t("assets/audio/en/cassi/audio-cassi-summary.mp3", "assets/audio/pt/cassi/pt-audio-cassi-summary.mp3"),
         password: "123",
         employer: "CASSI",
         readTime: _t("2 min", "2 min"),

@@ -4,6 +4,8 @@ export const testamentus = {
   slug: "typographic-reader",
   title: _t("Building an e-reader", "Construindo um e-reader"),
   year: _t("2025 ∙ Testamentus.org", "2025 ∙ Testamentus.org"),
+  audioSrc: _t("assets/audio/en/testamentus/audio-testamentus-summary.mp3", "assets/audio/pt/testamentus/pt-audio-testamentus-summary.mp3"),
+  audioSrcRecruiter: _t("assets/audio/en/testamentus/audio-testamentus-dev.mp3", "assets/audio/pt/testamentus/pt-audio-testamentus-dev.mp3"),
   readTime: _t("3 min", "3 min"),
   shortDesc: _t("A privacy-first reading engine built for typographic focus.", "Um motor de leitura digital focado em privacidade e foco tipográfico."),
   aiSummary: _t("Testamentus is a reading platform optimized for long-form retention. By strictly controlling line lengths and moving data to static edge delivery, it guarantees zero visual friction and instant load times.", "Testamentus é uma plataforma de leitura otimizada para retenção a longo prazo. Ao controlar estritamente comprimentos de linha e entregar os dados de forma estática, ela garante atrito visual zero e tempos de carregamento instantâneos."),

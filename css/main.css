@@ -42,6 +42,8 @@
     --space-xl: 24px;
     --space-xxl: 32px;
     --space-xxxl: 40px;
+    --space-xxxxl: 80px;
+    --space-xxxxxl: 100px;
     --page-padding: 8vw;
     --header-offset-y: 15vh; /* Added to manage absolute header positioning */
     --gallery-safe-top: calc(var(--header-offset-y) + 120px); /* A11Y: Dynamic safe zone to prevent title occlusion */
@@ -405,7 +407,7 @@ footer p {
     height: 100%;
     width: 100%;
     object-fit: cover;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-sm);
 }
 
 /* Visibility Overrides for leaving states */

@@ -201,10 +201,11 @@ if (modeToggleBtn) {
         }
 
         setTimeout(() => {
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            Object.keys(ttsMemory).forEach(k => delete ttsMemory[k]);
+            if (typeof currentAudioFile !== 'undefined' && currentAudioFile) {
+                currentAudioFile.pause();
+            }
             resetTTSStopped();
-        }, 50); 
+        }, 50);
     });
 }
 
@@ -232,7 +233,7 @@ function updateAllCasesText() {
             
             setTimeout(() => {
                 descBody.innerHTML = newContent;
-                attachTTSButton(descBody, caseData.id);
+                attachAudioPlayer(descBody, caseData.id);
                 
                 rebuildTOC(slide); 
                 initComboAssets(descBody); 
@@ -249,7 +250,7 @@ function updateAllCasesText() {
             }, 400); 
         } else {
             descBody.innerHTML = newContent;
-            attachTTSButton(descBody, caseData.id); 
+            attachAudioPlayer(descBody, caseData.id);
             rebuildTOC(slide); 
             initComboAssets(descBody); 
             if (window.Prism) { window.Prism.highlightAllUnder(descBody); }
@@ -314,6 +315,27 @@ function initComboAssets(container) {
         window.addEventListener('touchmove', move, { passive: true });
         window.addEventListener('mouseup', end);
         window.addEventListener('touchend', end);
+    });
+
+const reduceMotion = document.documentElement.classList.contains('a11y-reduce-motion');
+    const cardObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+        });
+    }, { threshold: 0.15 });
+
+    container.querySelectorAll('.combo-asset-card').forEach(card => {
+        if (card.classList.contains('is-visible')) return;
+
+        if (reduceMotion) {
+            card.classList.add('is-visible');
+            return;
+        }
+
+        cardObserver.observe(card);
     });
 
     container.querySelectorAll('.telemetry-overlay').forEach(overlay => {
@@ -417,7 +439,7 @@ function setupGalleryDrag(container) {
     let hasTriggeredVertical = false;
 
     const handleStart = (e) => {
-        if (e.target.closest('button, a, .floating-back-btn, .nav-link, .before-after-slider')) return;
+        if (e.target.closest('button, a, .floating-back-btn, .nav-link, .before-after-slider, .case-audio-player')) return;
         isDown = true;
         hasTriggeredVertical = false;
         isPreventingClicks = false;
@@ -521,7 +543,7 @@ function setupSliderDrag(container) {
     let animationFrameId, hasTriggeredVertical = false;
 
     const handleStart = (e) => {
-        if (e.target.closest('button, a, .floating-back-btn, .nav-link, .before-after-slider')) return;
+        if (e.target.closest('button, a, .floating-back-btn, .nav-link, .before-after-slider, .case-audio-player')) return;
         isDown = true; hasTriggeredVertical = false; isPreventingClicks = false;
         
         if (container._animationFrameId) cancelAnimationFrame(container._animationFrameId);
@@ -1050,6 +1072,12 @@ function initParagraphHover() {
     if (btnReadAloud) {
         btnReadAloud.addEventListener('click', () => {
             if (activeHoverParagraph && window.speechSynthesis) {
+                // Pause our new AI audio track if it's playing
+                if (typeof currentAudioFile !== 'undefined' && currentAudioFile) {
+                    currentAudioFile.pause();
+                }
+                if (typeof resetTTSButtons === 'function') resetTTSButtons();
+                
                 window.speechSynthesis.cancel(); 
                 const text = activeHoverParagraph.innerText;
                 const utterance = new SpeechSynthesisUtterance(text);

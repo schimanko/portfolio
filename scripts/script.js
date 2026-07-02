@@ -117,7 +117,9 @@ const slideObserver = new IntersectionObserver((entries) => {
             syncToggleForCurrentCase(); 
 
             if (activeTTSCaseId && activeTTSCaseId !== foundCase.id && ttsState !== 'stopped') {
-                window.speechSynthesis.cancel();
+                if (typeof currentAudioFile !== 'undefined' && currentAudioFile) {
+                    currentAudioFile.pause();
+                }
                 resetTTSStopped();
             }
             
@@ -162,7 +164,31 @@ function setupCaseScrollEffect(id) {
         scrollTimeout = setTimeout(() => {
             layout.classList.remove('is-scrolling');
             document.body.classList.remove('is-scrolling-case'); 
-        }, 1000); 
+        }, 800); 
+
+        // --- NEW: MINI PLAYER SCROLL SYNC TRIGGER ---
+        const player = scrollContainer.querySelector('.case-audio-player');
+        if (player) {
+            // Only evaluate shrink metrics if the user has unlocked stickiness by pressing play
+            if (player.classList.contains('is-sticky')) {
+                const descBody = scrollContainer.querySelector('.case-description-body');
+                const descTop = descBody.getBoundingClientRect().top;
+                
+                // Dynamic Universal Threshold
+                const rootVar = getComputedStyle(document.documentElement).getPropertyValue('--player-sticky-anchor').trim();
+                const dynamicThreshold = (parseInt(rootVar, 10) || 30) + 2; 
+
+                // Measure based on the parent container to allow global fixed positioning
+                // HYSTERESIS added: A 12px dead-zone buffer prevents flickering during high-speed autoscroll jumps
+                if (descTop <= dynamicThreshold) { 
+                    player.classList.add('is-shrunk');
+                } else if (descTop > dynamicThreshold + 12) {
+                    player.classList.remove('is-shrunk');
+                }
+            } else {
+                player.classList.remove('is-shrunk');
+            }
+        }
 
         if (scrollTop > 50) {
             layout.classList.add('is-scrolled');
@@ -497,7 +523,7 @@ function initPortfolio() {
                             
                             const newDescBody = dynContainer.querySelector('.case-description-body');
                             if (typeof initComboAssets === 'function') initComboAssets(newDescBody);
-                            if (typeof attachTTSButton === 'function') attachTTSButton(newDescBody, item.id);
+                            if (typeof attachAudioPlayer === 'function') attachAudioPlayer(newDescBody, item.id);
                             if (typeof rebuildTOC === 'function') rebuildTOC(slide);
                             attachShareBtn(dynContainer, item);
                             if (window.triggerAiTyping) window.triggerAiTyping(dynContainer);
@@ -526,7 +552,7 @@ function initPortfolio() {
         } else if (isUnlocked || !item.isProtected) {
             const finalDescBody = slide.querySelector('.case-description-body');
             if (finalDescBody) {
-                attachTTSButton(finalDescBody, item.id);
+                attachAudioPlayer(finalDescBody, item.id);
                 initComboAssets(finalDescBody); 
             }
             attachShareBtn(slide, item);
@@ -944,7 +970,30 @@ document.addEventListener('keydown', (e) => {
     if (isMod && checkKey('KeyA', 'a')) {
         e.preventDefault();
         const btn = document.getElementById('btn-a11y');
-        if (btn) btn.click();
+        if (btn && !views.case.classList.contains('active')) btn.click(); // Prevent conflict if they are in the case view looking for the Audio shortcut
+    }
+
+    // --- AI AUDIO PLAYER SHORTCUTS ---
+    if (views.case.classList.contains('active') && activeCaseData) {
+        const wrapper = document.querySelector(`.case-audio-player[data-case-id="${activeCaseData.id}"]`);
+        if (wrapper) {
+            if (e.shiftKey && checkKey('KeyP', 'p')) {
+                e.preventDefault();
+                wrapper.querySelector('.btn-tts-play').click();
+            }
+            if (e.shiftKey && checkKey('KeyS', 's')) {
+                e.preventDefault();
+                wrapper.querySelector('.btn-tts-speed').click();
+            }
+            if (e.shiftKey && checkKey('KeyH', 'h')) {
+                e.preventDefault();
+                wrapper.querySelector('.btn-tts-hide').click();
+            }
+            if (e.shiftKey && checkKey('KeyA', 'a')) {
+                e.preventDefault();
+                wrapper.querySelector('.btn-tts-autoscroll').click();
+            }
+        }
     }
 });
 

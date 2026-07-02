@@ -257,40 +257,38 @@ html.a11y-dark-mode .custom-subtitle {
     color: var(--color-white);
 }
 
-/* AI Reader TTS Button Optimization */
-html.a11y-dark-mode .tts-inline-wrapper {
-    background-color: rgba(255, 255, 255, 0.1);
+/* --- DARK MODE AI PLAYER --- */
+html.a11y-dark-mode .case-audio-player {
+    background: var(--color-card-bg);
+    border-color: rgba(255, 255, 255, 0.15);
     color: var(--color-white);
 }
 
-html.a11y-dark-mode .tts-inline-wrapper.is-playing,
-html.a11y-dark-mode .tts-inline-wrapper.is-paused {
-    background-color: var(--color-white);
-    color: var(--color-bg);
+html.a11y-dark-mode .case-audio-player .audio-player-header {
+    color: var(--color-gray-light);
 }
 
-html.a11y-dark-mode .tts-inline-wrapper::before {
-    background-color: rgba(255, 255, 255, 0.15);
+html.a11y-dark-mode .audio-progress-track {
+    background: rgba(255, 255, 255, 0.2);
 }
 
-/* Play Button Icon Visibility Fix */
-html.a11y-dark-mode .play-icon-circle {
+html.a11y-dark-mode .audio-progress-fill {
+    background: var(--color-white);
+}
+
+html.a11y-dark-mode .audio-progress-fill::after {
     background-color: var(--color-bg);
 }
 
-html.a11y-dark-mode .play-icon-circle svg path {
-    fill: var(--color-white) !important;
+html.a11y-dark-mode .btn-tts-action,
+html.a11y-dark-mode .btn-tts-play,
+html.a11y-dark-mode .btn-tts-speed,
+html.a11y-dark-mode .audio-time-label {
+    color: var(--color-white);
 }
 
-
-/* Disabled Switch State */
-.toggle-label input:disabled + .ios-switch {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.toggle-label input:disabled ~ .a11y-row-text {
-    opacity: 0.5;
+html.a11y-dark-mode .btn-tts-action.is-active {
+    color: var(--color-accent);
 }
 
 
@@ -855,6 +853,14 @@ html.a11y-large-text .custom-subtitle {
     line-height: 1.2;
 }
 
+html.a11y-large-text .case-audio-player.is-shrunk {
+    max-width: 480px; 
+}
+
+html.a11y-large-text .speed-value-text {
+    font-size: 14px;
+}
+
 /* --- Protected Case UI (High Contrast) --- */
 html.a11y-high-contrast .protected-case-card {
     background-color: var(--color-bg) !important;
@@ -926,5 +932,32 @@ html.a11y-reduce-motion .a11y-modal {
 }
 
 html.a11y-reduce-motion .view-section.active {
+    opacity: 1 !important;
+}
+
+/* --- HIGH CONTRAST AI PLAYER --- */
+html.a11y-high-contrast .case-audio-player {
+    background: var(--color-bg) !important;
+    border: 2px solid var(--color-white) !important;
+    color: var(--color-white) !important;
+}
+
+html.a11y-high-contrast .case-audio-player .audio-player-header {
+    color: var(--color-white) !important;
+}
+
+html.a11y-high-contrast .audio-progress-track {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
+html.a11y-high-contrast .audio-progress-fill {
+    background: var(--color-white) !important;
+}
+
+html.a11y-high-contrast .btn-tts-action,
+html.a11y-high-contrast .btn-tts-play,
+html.a11y-high-contrast .btn-tts-speed,
+html.a11y-high-contrast .audio-time-label {
+    color: var(--color-white) !important;
     opacity: 1 !important;
 }

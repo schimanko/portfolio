@@ -1,43 +1,167 @@
 /* ==========================================================================
    TEXT-TO-SPEECH (TTS) ENGINE
    ========================================================================== */
-let currentUtterance = null;
-let ttsState = 'stopped'; 
+// --- GLOBAL AUDIO STATE & MEMORY ---
+let currentAudioFile = null;
+let ttsState = 'stopped';
 let activeTTSCaseId = null;
-let currentTTSRate = 1.0; 
-const ttsMemory = {}; 
+let currentTTSRate = 1.0;
+const ttsMemory = {}; // Critical: This object persists the audio progress
 
-if (window.speechSynthesis) {
-    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+// User Preferences for new features
+let prefHideOnScroll = localStorage.getItem('pref-tts-hide') === 'true';
+let prefAutoScroll = localStorage.getItem('pref-tts-autoscroll') === 'true';
+
+// --- GLOBAL SEEK EVENTS & FORMATTERS ---
+let isDraggingAudio = false;
+let activeAudioProgress = null;
+let activeAudioCaseId = null;
+
+function formatAudioTime(seconds) {
+    if (!seconds || isNaN(seconds)) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-function attachTTSButton(descBody, caseId) {
-    const firstParagraph = descBody.querySelector('p');
-    if (!firstParagraph || firstParagraph.querySelector('.tts-inline-wrapper')) return;
+function handleAudioSeek(e) {
+    if (!activeAudioProgress) return;
+    const rect = activeAudioProgress.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const percent = x / rect.width;
+    
+    const fill = activeAudioProgress.querySelector('.audio-progress-fill');
+    if (fill) fill.style.width = `${percent * 100}%`;
+    
+    const memKey = activeAudioCaseId + (isRecruiterMode ? '-tech' : '-exec');
+    const duration = ttsMemory[memKey + '-duration'] || (currentAudioFile && currentAudioFile.duration ? currentAudioFile.duration : 0);
+    
+    if (duration > 0) {
+        const newTime = percent * duration;
+        ttsMemory[memKey] = newTime;
+        
+        const playerWrapper = activeAudioProgress.closest('.case-audio-player');
+        if (playerWrapper) {
+            const timeLabel = playerWrapper.querySelector('.audio-time-label');
+            if (timeLabel) timeLabel.textContent = `${formatAudioTime(newTime)} / ${formatAudioTime(duration)}`;
+        }
+
+        if (currentAudioFile && activeTTSCaseId === activeAudioCaseId) {
+            currentAudioFile.currentTime = newTime;
+        }
+    }
+}
+
+window.addEventListener('mousemove', (e) => { if (isDraggingAudio) handleAudioSeek(e); });
+window.addEventListener('mouseup', () => { isDraggingAudio = false; activeAudioProgress = null; activeAudioCaseId = null; });
+window.addEventListener('touchmove', (e) => { if (isDraggingAudio) handleAudioSeek(e); }, { passive: true });
+window.addEventListener('touchend', () => { isDraggingAudio = false; activeAudioProgress = null; activeAudioCaseId = null; });
+
+
+// --- PLAYER UI INJECTION ---
+// --- PLAYER UI INJECTION ---
+function attachAudioPlayer(descBody, caseId) {
+    const existing = descBody.querySelector('.case-audio-player');
+    if (existing) existing.remove();
+
+    const caseData = portfolioCases.find(c => c.id === caseId);
+    let audioUrl = (isRecruiterMode && caseData && caseData.audioSrcRecruiter) ? caseData.audioSrcRecruiter : (caseData ? caseData.audioSrc : null);
+
+    const memKey = caseId + (isRecruiterMode ? '-tech' : '-exec');
+    const savedTime = ttsMemory[memKey] || 0;
+    const savedDuration = ttsMemory[memKey + '-duration'] || 0; 
+    const progress = savedDuration > 0 ? (savedTime / savedDuration) * 100 : 0;
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'tts-inline-wrapper';
+    wrapper.className = 'case-audio-player';
     wrapper.setAttribute('data-case-id', caseId);
     
-    const savedProgress = ttsMemory[caseId] && ttsMemory[caseId].fullLength 
-        ? (ttsMemory[caseId].charIndex / ttsMemory[caseId].fullLength) * 100 
-        : 0;
-    wrapper.style.setProperty('--tts-progress', `${savedProgress}%`);
+    // 1. Maintain stickiness constraint if clicked before
+    if (ttsMemory[memKey + '-has-played'] || (activeTTSCaseId === caseId && ttsState === 'speaking')) {
+        wrapper.classList.add('is-sticky');
+    }
+    
+    // Initialize dismissed state based on prefHideOnScroll
+    if (prefHideOnScroll) {
+        wrapper.classList.add('is-dismissed');
+    }
+
+    // Continuous geometry synchronization hook
+    const timeStr = `${formatAudioTime(savedTime)} / ${savedDuration ? formatAudioTime(savedDuration) : '--:--'}`;
+    
+    // Visually restore play state if this case is currently active
+    if (activeTTSCaseId === caseId && ttsState === 'speaking') {
+        wrapper.classList.add('is-playing');
+    }
+
+    const seekA11y = typeof t === 'function' ? t('audio_seek') : 'Seek audio';
+    const playA11y = typeof t === 'function' ? t('tts_play') : 'Play audio';
+    const pauseA11y = typeof t === 'function' ? t('tts_pause') : 'Pause audio';
+    const speedA11y = typeof t === 'function' ? t('tts_change_speed') : 'Change speed';
+    const hideA11y = typeof t === 'function' ? t('tts_hide_scroll') : 'Hide while scrolling';
+    const autoA11y = typeof t === 'function' ? t('tts_autoscroll') : 'Auto-scroll with audio';
+    const readerLabel = typeof t === 'function' ? t('tts_ai_reader') : 'AI Reader';
 
     wrapper.innerHTML = `
-        <button class="btn-tts-play" title="${t('tts_play_pause')}">
-            <span class="tts-icon-wrapper">
-                <svg class="pause-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                <svg class="play-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5V19L19 12L8 5Z"/></svg>
-            </span>
-            <span class="tts-text">${t('tts_ai_reader')}</span>
-        </button>
-        <div class="tts-divider"></div>
-        <button class="btn-tts-speed" title="${t('tts_change_speed')}">${currentTTSRate}x</button>
+        <div class="audio-player-header" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/></svg>
+            <span>${readerLabel}</span>
+        </div>
+        <div class="audio-player-controls-row">
+            <button class="btn-tts-play control-btn" aria-label="${playA11y}">
+                <span class="tts-icon-wrapper">
+                    <svg class="pause-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    <svg class="play-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5V19L19 12L8 5Z"/></svg>
+                </span>
+                <span class="action-tooltip tts-play-tooltip">${playA11y} <kbd>⇧ P</kbd></span>
+            </button>
+            <div class="audio-progress-container" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}" tabindex="0" aria-label="${seekA11y}">
+                <div class="audio-progress-track">
+                    <div class="audio-progress-fill" style="width: ${progress}%"></div>
+                </div>
+            </div>
+            <div class="audio-time-label">${timeStr}</div>
+            
+            <div class="tts-divider"></div>
+            <button class="btn-tts-speed control-btn" aria-label="${speedA11y}">
+                <span class="speed-value-text">${currentTTSRate}x</span>
+                <span class="action-tooltip">${speedA11y} <kbd>⇧ S</kbd></span>
+            </button>
+            
+            <div class="tts-divider"></div>
+            <button class="btn-tts-action btn-tts-hide control-btn ${prefHideOnScroll ? 'is-active' : ''}" aria-label="${hideA11y}">
+                <svg class="eye-open-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="eye-closed-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                <span class="action-tooltip">${hideA11y} <kbd>⇧ H</kbd></span>
+            </button>
+            
+            <div class="tts-divider"></div>
+            <button class="btn-tts-action btn-tts-autoscroll control-btn ${prefAutoScroll ? 'is-active' : ''}" aria-label="${autoA11y}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 13 12 18 17 13"></polyline><polyline points="7 6 12 11 17 6"></polyline></svg>
+                <span class="action-tooltip">${autoA11y} <kbd>⇧ A</kbd></span>
+            </button>
+        </div>
     `;
+
+    // Silently fetch metadata to display duration immediately
+    if (audioUrl && !savedDuration) {
+        const tempAudio = new Audio(audioUrl);
+        tempAudio.preload = "metadata";
+        tempAudio.addEventListener('loadedmetadata', () => {
+            if (tempAudio.duration && tempAudio.duration !== Infinity) {
+                ttsMemory[memKey + '-duration'] = tempAudio.duration;
+                const timeLabel = wrapper.querySelector('.audio-time-label');
+                if (timeLabel) timeLabel.textContent = `${formatAudioTime(ttsMemory[memKey] || 0)} / ${formatAudioTime(tempAudio.duration)}`;
+            }
+        });
+    }
 
     const playBtn = wrapper.querySelector('.btn-tts-play');
     const speedBtn = wrapper.querySelector('.btn-tts-speed');
+    const hideBtn = wrapper.querySelector('.btn-tts-hide');
+    const autoBtn = wrapper.querySelector('.btn-tts-autoscroll');
+    const progressContainer = wrapper.querySelector('.audio-progress-container');
 
     playBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -49,32 +173,117 @@ function attachTTSButton(descBody, caseId) {
         cycleTTSRate(wrapper, caseId, descBody);
     });
 
-    firstParagraph.insertBefore(wrapper, firstParagraph.firstChild);
+    hideBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        prefHideOnScroll = !prefHideOnScroll;
+        localStorage.setItem('pref-tts-hide', prefHideOnScroll);
+        wrapper.classList.toggle('is-dismissed', prefHideOnScroll);
+        hideBtn.classList.toggle('is-active', prefHideOnScroll);
+    });
+
+    autoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        prefAutoScroll = !prefAutoScroll;
+        localStorage.setItem('pref-tts-autoscroll', prefAutoScroll);
+        autoBtn.classList.toggle('is-active', prefAutoScroll);
+    });
+
+    progressContainer.addEventListener('mousedown', (e) => {
+        isDraggingAudio = true;
+        progressContainer.classList.add('is-dragging');
+        activeAudioProgress = progressContainer;
+        activeAudioCaseId = caseId;
+        handleAudioSeek(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+        if(activeAudioProgress) activeAudioProgress.classList.remove('is-dragging');
+        isDraggingAudio = false; 
+        activeAudioProgress = null; 
+        activeAudioCaseId = null; 
+    });
+    
+    progressContainer.addEventListener('touchstart', (e) => {
+        isDraggingAudio = true;
+        activeAudioProgress = progressContainer;
+        activeAudioCaseId = caseId;
+        handleAudioSeek(e);
+    }, { passive: true });
+
+    // A11y Keyboard Seeking (5s jumps)
+    const a11yAudioSkipStep = 5; 
+    progressContainer.addEventListener('keydown', (e) => {
+        const duration = ttsMemory[memKey + '-duration'] || (currentAudioFile ? currentAudioFile.duration : 0);
+        if (!duration) return;
+
+        let newTime = ttsMemory[memKey] || 0;
+
+        if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            newTime = Math.min(duration, newTime + a11yAudioSkipStep);
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            newTime = Math.max(0, newTime - a11yAudioSkipStep);
+        } else { return; }
+
+        ttsMemory[memKey] = newTime;
+        const currentProgress = (newTime / duration) * 100;
+        
+        const fill = wrapper.querySelector('.audio-progress-fill');
+        if (fill) fill.style.width = `${currentProgress}%`;
+        
+        const timeLabel = wrapper.querySelector('.audio-time-label');
+        if (timeLabel) timeLabel.textContent = `${formatAudioTime(newTime)} / ${formatAudioTime(duration)}`;
+        
+        progressContainer.setAttribute('aria-valuenow', currentProgress);
+        if (currentAudioFile && activeTTSCaseId === caseId) currentAudioFile.currentTime = newTime;
+    });
+
+    descBody.insertBefore(wrapper, descBody.firstChild);
+
+    // Sync shrink state immediately on DOM placement if mounted mid-scroll
+    // Dynamic Universal Sticky Offset Calculation
+    requestAnimationFrame(() => {
+        if (wrapper.classList.contains('is-sticky')) {
+            const playerTop = wrapper.getBoundingClientRect().top;
+            const rootVar = getComputedStyle(document.documentElement).getPropertyValue('--player-sticky-anchor').trim();
+            const threshold = (parseInt(rootVar, 10) || 30) + 2; 
+            
+            if (playerTop <= threshold) {
+                wrapper.classList.add('is-shrunk');
+            }
+        }
+    });
 }
 
 function cycleTTSRate(wrapper, caseId, descBody) {
+    // Updated velocity loop: 1.0 -> 1.15 -> 1.2 -> 0.7
     if (currentTTSRate === 1.0) currentTTSRate = 1.15;
-    else if (currentTTSRate === 1.15) currentTTSRate = 1.25;
-    else if (currentTTSRate === 1.25) currentTTSRate = 1.3;
+    else if (currentTTSRate === 1.15) currentTTSRate = 1.2;
+    else if (currentTTSRate === 1.2) currentTTSRate = 0.7;
     else currentTTSRate = 1.0;
 
-    document.querySelectorAll('.btn-tts-speed').forEach(btn => {
-        btn.textContent = currentTTSRate + 'x';
+    document.querySelectorAll('.btn-tts-speed .speed-value-text').forEach(span => {
+        span.textContent = currentTTSRate + 'x';
     });
 
-    if (ttsState === 'speaking' && activeTTSCaseId === caseId) {
-        window.speechSynthesis.cancel();
-        ttsState = 'stopped';
-        wrapper.classList.remove('is-playing');
-        setTimeout(() => { toggleTTS(caseId, wrapper, descBody); }, 50);
+    // Directly apply the new speed to the native audio element without stopping playback
+    if (currentAudioFile) {
+        currentAudioFile.playbackRate = currentTTSRate;
     }
 }
 
 function toggleTTS(caseId, wrapper, descBody) {
-    if (!window.speechSynthesis) return alert(t('tts_not_supported'));
+    const caseData = portfolioCases.find(c => c.id === caseId);
+    if (!caseData) return;
+
+    const memKey = caseId + (isRecruiterMode ? '-tech' : '-exec');
 
     if (activeTTSCaseId && activeTTSCaseId !== caseId && ttsState !== 'stopped') {
-        window.speechSynthesis.cancel();
+        if (currentAudioFile) {
+            currentAudioFile.pause();
+            // Progress is naturally preserved, no reset
+        }
         resetTTSStopped();
     }
 
@@ -84,72 +293,100 @@ function toggleTTS(caseId, wrapper, descBody) {
         ttsState = 'speaking';
         resetTTSButtons();
 
-        const clone = descBody.cloneNode(true);
-        clone.querySelectorAll('pre, code, .case-caption, .tts-inline-wrapper, h3').forEach(el => el.remove());
-        const fullText = clone.innerText;
+        // Mark as played to open stickiness permissions permanently for this case asset
+        ttsMemory[memKey + '-has-played'] = true;
+        wrapper.classList.add('is-sticky');
         
-        if (!ttsMemory[caseId]) ttsMemory[caseId] = { charIndex: 0, fullLength: fullText.length };
-        if (ttsMemory[caseId].charIndex >= fullText.length - 5) ttsMemory[caseId].charIndex = 0;
-
-        const textToRead = fullText.substring(ttsMemory[caseId].charIndex);
-        currentUtterance = new SpeechSynthesisUtterance(textToRead);
-        currentUtterance.rate = currentTTSRate;
+        let audioUrl = (isRecruiterMode && caseData.audioSrcRecruiter) ? caseData.audioSrcRecruiter : caseData.audioSrc;
         
-        const htmlLang = document.documentElement.lang || 'en';
-        currentUtterance.lang = htmlLang.includes('pt') ? 'pt-BR' : 'en-US';
-        const voices = window.speechSynthesis.getVoices();
-        const langPrefix = currentUtterance.lang.substring(0,2);
-        
-        let bestVoice = voices.find(v => v.lang.includes(langPrefix) && v.name.includes('Google')) ||
-                        voices.find(v => v.lang.includes(langPrefix) && (v.name.includes('Premium') || v.name.includes('Enhanced'))) ||
-                        voices.find(v => v.lang.includes(langPrefix) && v.name.includes('Natural')) ||
-                        voices.find(v => v.lang.includes(langPrefix));
-        if (bestVoice) currentUtterance.voice = bestVoice;
-
-        const startIndex = ttsMemory[caseId].charIndex;
-        currentUtterance.onboundary = (e) => {
-            if (e.name === 'word') {
-                const currentGlobalIndex = startIndex + e.charIndex;
-                ttsMemory[caseId].charIndex = currentGlobalIndex;
-                const progress = (currentGlobalIndex / ttsMemory[caseId].fullLength) * 100;
-                wrapper.style.setProperty('--tts-progress', `${progress}%`);
-            }
-        };
-
-        currentUtterance.onend = () => {
-            ttsMemory[caseId].charIndex = 0;
-            wrapper.style.setProperty('--tts-progress', `0%`);
+        if (!audioUrl) {
             resetTTSStopped();
-        };
+            return;
+        }
+
+        currentAudioFile = new Audio(audioUrl);
+        currentAudioFile.playbackRate = currentTTSRate;
+        
+        // Resume from saved memory
+        if (ttsMemory[memKey]) {
+            currentAudioFile.currentTime = ttsMemory[memKey];
+        }
+
+        currentAudioFile.addEventListener('loadedmetadata', () => {
+            ttsMemory[memKey + '-duration'] = currentAudioFile.duration;
+            const timeLabel = wrapper.querySelector('.audio-time-label');
+            if (timeLabel) timeLabel.textContent = `${formatAudioTime(currentAudioFile.currentTime)} / ${formatAudioTime(currentAudioFile.duration)}`;
+        });
+
+        currentAudioFile.addEventListener('timeupdate', () => {
+            if (currentAudioFile.duration && !isDraggingAudio) {
+                // Track timestamps for our 60fps RAF engine
+                currentAudioFile._lastAudioTime = currentAudioFile.currentTime;
+                currentAudioFile._lastSysTime = performance.now();
+
+                ttsMemory[memKey] = currentAudioFile.currentTime;
+                const pct = currentAudioFile.currentTime / currentAudioFile.duration;
+                
+                const fill = wrapper.querySelector('.audio-progress-fill');
+                if (fill) fill.style.width = `${pct * 100}%`;
+                
+                const timeLabel = wrapper.querySelector('.audio-time-label');
+                if (timeLabel) timeLabel.textContent = `${formatAudioTime(currentAudioFile.currentTime)} / ${formatAudioTime(currentAudioFile.duration)}`;
+                
+                wrapper.querySelector('.audio-progress-container').setAttribute('aria-valuenow', pct * 100);
+            }
+        });
+
+        currentAudioFile.addEventListener('ended', () => {
+            const fill = wrapper.querySelector('.audio-progress-fill');
+            if (fill) fill.style.width = `0%`;
+            ttsMemory[memKey] = 0; // Wipe memory cleanly on finish
+            const timeLabel = wrapper.querySelector('.audio-time-label');
+            if (timeLabel) timeLabel.textContent = `0:00 / ${formatAudioTime(currentAudioFile.duration)}`;
+            resetTTSStopped();
+        });
 
         wrapper.classList.add('is-playing');
-        window.speechSynthesis.speak(currentUtterance);
+        currentAudioFile.play().catch(e => {
+            console.error("Audio playback failed:", e);
+            resetTTSStopped();
+        });
 
     } else if (ttsState === 'speaking') {
         ttsState = 'paused';
-        window.speechSynthesis.pause();
+        if (currentAudioFile) currentAudioFile.pause();
         wrapper.classList.remove('is-playing');
         wrapper.classList.add('is-paused');
+        
+        const tt = wrapper.querySelector('.tts-play-tooltip');
+        if (tt) tt.innerHTML = `${typeof t === 'function' ? t('tts_play') : 'Play audio'} <kbd>⇧ P</kbd>`;
 
     } else if (ttsState === 'paused') {
         ttsState = 'speaking';
-        window.speechSynthesis.resume();
+        if (currentAudioFile) {
+            currentAudioFile.playbackRate = currentTTSRate; 
+            currentAudioFile.play();
+        }
         wrapper.classList.add('is-playing');
         wrapper.classList.remove('is-paused');
+        
+        const tt = wrapper.querySelector('.tts-play-tooltip');
+        if (tt) tt.innerHTML = `${typeof t === 'function' ? t('tts_pause') : 'Pause audio'} <kbd>⇧ P</kbd>`;
     }
-}
-
-function resetTTSButtons() {
-    document.querySelectorAll('.tts-inline-wrapper').forEach(b => {
-        b.classList.remove('is-playing');
-        b.classList.remove('is-paused');
-    });
 }
 
 function resetTTSStopped() {
     resetTTSButtons();
     ttsState = 'stopped';
     activeTTSCaseId = null;
+    currentAudioFile = null; 
+}
+
+function resetTTSButtons() {
+    document.querySelectorAll('.case-audio-player').forEach(b => {
+        b.classList.remove('is-playing');
+        b.classList.remove('is-paused');
+    });
 }
 
 /* ==========================================================================
@@ -635,4 +872,36 @@ if (progressContainer) {
             if (wasPlayingBeforeDrag) mainVideo.play();
         }
     });
+}
+/* --- HIGH PERFORMANCE AUTOSCROLL ENGINE --- */
+function renderSmoothAutoScroll() {
+    if (ttsState === 'speaking' && prefAutoScroll && currentAudioFile && currentAudioFile.duration) {
+        const now = performance.now();
+        const sysElapsed = (now - (currentAudioFile._lastSysTime || now)) / 1000;
+        
+        // Interpolate time smoothly based on system clock scaled by playback velocity
+        let estTime = (currentAudioFile._lastAudioTime || 0) + (sysElapsed * currentAudioFile.playbackRate);
+        estTime = Math.min(estTime, currentAudioFile.duration);
+        
+        // Multiplier 1.15 makes the page scroll slightly faster to finish right before the audio ends
+        const pct = Math.min((estTime / currentAudioFile.duration) * 1.15, 1.0);
+        
+        if (activeTTSCaseId && !isDraggingAudio) {
+            const wrapper = document.querySelector(`.case-audio-player[data-case-id="${activeTTSCaseId}"]`);
+            if (wrapper) {
+                const scrollContainer = wrapper.closest('.case-info-scroll');
+                if (scrollContainer && !isPreventingClicks) {
+                    const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+                    scrollContainer.scrollTop = pct * maxScroll;
+                }
+            }
+        }
+    }
+    requestAnimationFrame(renderSmoothAutoScroll);
+}
+
+// Boot up the global animation loop
+if (!window._autoScrollLoopInit) {
+    window._autoScrollLoopInit = true;
+    requestAnimationFrame(renderSmoothAutoScroll);
 }

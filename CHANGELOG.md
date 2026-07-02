@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file. The format 
 
 The format is based on a simple release log tailored to this app's public evolution.
 
+## [2.1.4] - 2026-06-30
+
+## Added
+- `--space-xxxxl: 80px;` and `--space-xxxxxl: 100px;` as new Spacing Scale variables, and applied the first one to the `combo-asset-card`.
+- An entrance animation for `.combo-asset-card`.
+- New Keyboard Shortcuts for the AI Reader on `Shift`, separated from the other global Keyboard Shortcuts.
+
+## Changed
+### AI Reader
+- Change the read-out-loud function from robotic TTS (Text-to-Speech) to pre-recorded AI TTS, via `generate_output.py`.
+- Player layout for the AI Reader, with on scroll animations, playback speed options (`0.7`, `1.0`, `1.15`, `1.2`), "Hide on play" and "Auto-scroll on play" buttons.
+
 ## [2.1.3] - 2026-06-30
 
 ## Fixed 

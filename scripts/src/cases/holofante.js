@@ -3,6 +3,8 @@ export const holofante = {
     id: "holofante",
     slug: "agentic-ai-design",
     year: _t("2026 ∙ Holofante R&D lab", "2026 ∙ Laboratório P&D Holofante"),
+    audioSrc: _t("assets/audio/en/holofante/audio-holofante-summary.mp3", "assets/audio/pt/holofante/pt-audio-holofante-summary.mp3"),
+    audioSrcRecruiter: _t("assets/audio/en/holofante/audio-holofante-dev.mp3", "assets/audio/pt/holofante/pt-audio-holofante-dev.mp3"),
     readTime: _t("3 min", "3 min"),
     title: _t("Agentic AI Design", "Design de IA Agêntica"),
     shortDesc: _t("DesignOps automation cuts delivery latency by 70%.", "Automação de DesignOps reduz a latência de entrega em 70%."),

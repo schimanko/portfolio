@@ -33,6 +33,8 @@ let vttTimeUpdateHandler = null;
 let prePlayerDarkMode = false;
 let prePlayerHighContrast = false;
 
+const PLAYER_STICKY_THRESHOLD = 32; // Matches the 30px visual breadcrumb alignment + 2px safety buffer
+
 // Reversion Logic Helper for Player Mode
 function restorePlayerA11yPrefs() {
     const tglDark = document.getElementById('toggle-dark');
@@ -137,8 +139,11 @@ function switchView(viewName) {
             }, 500);
         }
 
-    if (viewName !== 'case' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
+    if (viewName !== 'case') {
+        if (typeof currentAudioFile !== 'undefined' && currentAudioFile) {
+            currentAudioFile.pause();
+        }
+        if (typeof resetTTSStopped === 'function') resetTTSStopped();
     }
     
     if (['case', 'player', 'about'].includes(viewName)) { 

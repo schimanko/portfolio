@@ -358,10 +358,10 @@ a:active .action-tooltip {
 }
 
 .control-btn .action-tooltip {
-    top: 50%;
+    top: calc(100% + 14px);
     bottom: auto;
-    left: calc(100% + 14px);
-    transform: translateY(-50%) translateX(-4px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
 }
 
 .floating-home-btn .action-tooltip {
@@ -394,7 +394,7 @@ a:active .action-tooltip {
 
 .control-btn:hover .action-tooltip {
     opacity: 1;
-    transform: translateY(-50%) translateX(0);
+    transform: translateX(-50%) translateY(0);
     display: flex !important;
 }
 
@@ -815,7 +815,6 @@ button.a11y-row:hover {
     justify-content: center;
     font-size: 10px;
     font-weight: 700;
-    text-transform: uppercase;
     letter-spacing: 0.02em;
 }
 
@@ -1147,6 +1146,238 @@ body:not([data-active-view="case"]) #mode-toggle-divider {
 .inline-ai-chat [id^="inline-chat-messages-"]::-webkit-scrollbar {
     display: none;
 }
+
+/* ==========================================================================
+   AUDIO PLAYER UI
+   ========================================================================== */
+
+/* --- AI Audio Player UI --- */
+.case-audio-player {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    margin: 0 auto 24px auto; /* Centered layout bounds with auto side-margins */
+    width: 100%;
+    max-width: 100%; /* Starts full-width inside the column container */
+    border-radius: var(--radius-md);
+    background: var(--color-glass-bg);
+    border: 1px solid var(--color-card-border);
+    
+    /* Default non-sticky flow placement */
+    position: relative;
+    top: 0; /* Keeps it perfectly locked in place before playing */
+    z-index: 21;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    /* Smooth layout animations */
+    transition: max-width var(--speed-normal) var(--ease-fluid),
+                padding var(--speed-normal) var(--ease-fluid),
+                border-radius var(--speed-normal) var(--ease-fluid),
+                gap var(--speed-normal) var(--ease-fluid),
+                box-shadow var(--speed-normal) var(--ease-standard),
+                top var(--speed-normal) var(--ease-standard);
+}
+
+
+:root {
+    --player-sticky-anchor: 30px; /* Universal dynamic anchor */
+}
+
+/* Eye Icon Dual State Toggling */
+.btn-tts-hide .eye-closed-icon {
+    display: none;
+}
+.btn-tts-hide.is-active .eye-closed-icon {
+    display: block;
+}
+.btn-tts-hide.is-active .eye-open-icon {
+    display: none;
+}
+
+/* Edge Tooltip Pinning Overrides */
+.btn-tts-play .action-tooltip {
+    left: 0;
+    right: auto;
+    transform: translateY(4px);
+}
+.btn-tts-play:hover .action-tooltip {
+    transform: translateY(0);
+}
+
+.btn-tts-autoscroll .action-tooltip {
+    left: auto;
+    right: 0;
+    transform: translateY(4px);
+}
+.btn-tts-autoscroll:hover .action-tooltip {
+    transform: translateY(0);
+}
+
+/* Removes relative stickiness, prepares for global fixed positioning */
+.case-audio-player.is-sticky {
+    position: relative;
+    z-index: 21;
+}
+
+/* Transforms the player into a globally fixed capsule anchored to the page top */
+.case-audio-player.is-shrunk {
+    position: fixed;
+    top: var(--player-sticky-anchor);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: calc(100% - 40px);
+    max-width: 380px; 
+    padding: 8px 14px;
+    gap: 0px;
+    border-radius: var(--radius-pill); 
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Smoother hide animation triggered by the user */
+.case-audio-player.is-shrunk.is-dismissed {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateX(-50%) translateY(-120%) scale(0.9) !important;
+}
+
+/* Discrete Compact State on Scroll */
+.case-audio-player.is-shrunk {
+    max-width: 380px; /* Pulls the player into a compact floating deck */
+    padding: 8px 14px;
+    gap: 0px;
+    border-radius: var(--radius-pill); /* Sweeps perfectly into an oval capsule */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Header matches AI Summary typography precisely */
+.audio-player-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-accent);
+    max-height: 20px;
+    opacity: 1;
+    transition: max-height var(--speed-normal) var(--ease-fluid), 
+                opacity var(--speed-normal) var(--ease-fluid),
+                margin-bottom var(--speed-normal) var(--ease-fluid);
+}
+
+.case-audio-player.is-shrunk .audio-player-header {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Wraps the buttons and progress bar in a horizontal line */
+.audio-player-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-tts-play {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.audio-progress-container {
+    flex: 1;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    cursor: ew-resize; /* A11y & UX: Indicates horizontal dragging */
+    touch-action: none;
+}
+
+.audio-progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(128, 128, 128, 0.2);
+    border-radius: 4px;
+    /* Removed overflow: hidden so the knob can render outside the track bounds */
+}
+
+.audio-progress-fill {
+    height: 100%;
+    background: currentColor;
+    border-radius: 4px;
+    pointer-events: none;
+    transition: width 0.05s linear;
+    position: relative;
+}
+
+/* Draggable Knob */
+.audio-progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-black);
+    border-radius: var(--radius-circle);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform var(--speed-fast) var(--ease-standard);
+}
+
+.audio-progress-container:hover .audio-progress-fill::after,
+.audio-progress-container.is-dragging .audio-progress-fill::after {
+    transform: translateY(-50%) scale(1.25);
+}
+
+/* Player Button Shared States */
+.btn-tts-action {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 6px;
+    opacity: 0.5;
+    transition: opacity var(--speed-fast) var(--ease-standard), color var(--speed-fast) var(--ease-standard);
+}
+
+.btn-tts-action:hover {
+    opacity: 1;
+}
+
+.btn-tts-action.is-active {
+    opacity: 1;
+    color: var(--color-accent);
+}
+
+.audio-time-label {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+/* Play/Pause Icon Toggling */
+.case-audio-player .pause-icon { display: none; }
+.case-audio-player.is-playing .play-icon { display: none; }
+.case-audio-player.is-playing .pause-icon { display: block; }
 
 /* ==========================================================================
    MOBILE RESPONSIVENESS (COMPONENTS)

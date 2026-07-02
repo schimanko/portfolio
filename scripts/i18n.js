@@ -82,8 +82,11 @@ const translations = {
         "explain_part": "Can you explain this part?",
         "tts_not_supported": "Your browser does not support text-to-speech.",
         "tts_ai_reader": "AI Reader",
-        "tts_play_pause": "Play/Pause",
-        "tts_change_speed": "Change Speed",
+        "tts_play": "Play audio",
+        "tts_pause": "Pause audio",
+        "tts_change_speed": "Change speed",
+        "tts_hide_scroll": "Hide on play",
+        "tts_autoscroll": "Auto-scroll on play",
         "mermaid_error": "Execution error parsing systems chart."
     },
     "pt": {
@@ -157,8 +160,11 @@ const translations = {
         "explain_part": "Você pode explicar esta parte?",
         "tts_not_supported": "Seu navegador não suporta conversão de texto em fala.",
         "tts_ai_reader": "Leitor de IA",
-        "tts_play_pause": "Play/Pausar",
-        "tts_change_speed": "Alterar Velocidade",
+        "tts_play": "Tocar áudio",
+        "tts_pause": "Pausar áudio",
+        "tts_change_speed": "Alterar velocidade",
+        "tts_hide_scroll": "Ocultar reprodutor",
+        "tts_autoscroll": "Rolar texto com o áudio",
         "mermaid_error": "Erro de execuxão ao analisar o gráfico de sistemas."
     }
 };

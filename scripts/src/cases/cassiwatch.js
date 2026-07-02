@@ -3,6 +3,7 @@ export const cassiwatch = {
    id: "cassiwatch",
    slug: "ux-on-wrist",
    year: "2023 ∙ CASSI",
+   audioSrc: _t("assets/audio/en/cassiwatch/audio-cassiwatch-summary.mp3", "assets/audio/pt/cassiwatch/pt-audio-cassiwatch-summary.mp3"),
    employer: "CASSI",
    readTime: _t("3 min", "3 min"),
    title: _t("UX on Wrist ", "UX no Pulso"),

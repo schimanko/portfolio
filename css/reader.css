@@ -351,6 +351,7 @@ html.bypassed-entrance .gallery-item {
    scrollbar-width: none;
    overscroll-behavior: contain;
    pointer-events: auto;
+   background-color: var(--color-bg);
 }
 
 .case-info-scroll::-webkit-scrollbar {
@@ -864,6 +865,7 @@ html.bypassed-entrance .gallery-item {
 .case-description-body {
    transition: opacity var(--speed-normal) var(--ease-standard);
    will-change: opacity;
+   background-color: var(--color-bg);
 }
 
 .case-description-body.is-transitioning {
@@ -1002,6 +1004,18 @@ html.bypassed-entrance .gallery-item {
 /* ==========================================================================
    COMBO ASSET CARDS
    ========================================================================== */
+@keyframes comboAssetCardEntrance {
+   0% {
+      opacity: 0;
+      transform: translateY(12px);
+   }
+
+   100% {
+      opacity: 1;
+      transform: translateY(0);
+   }
+}
+
 .asset-visual-wrapper {
    width: 100%;
    max-width: 100%;
@@ -1037,7 +1051,7 @@ html.bypassed-entrance .gallery-item {
    border: 1px solid var(--color-card-border);
    border-radius: var(--radius-lg);
    padding: var(--space-xl);
-   margin: var(--space-xxxl) 0;
+   margin: var(--space-xxxxl) 0;
    display: flex;
    flex-direction: column;
    gap: var(--space-lg);
@@ -1047,6 +1061,16 @@ html.bypassed-entrance .gallery-item {
    box-sizing: border-box;
    overflow: hidden;
    position: relative;
+   opacity: 0;
+   transform: translateY(12px);
+   will-change: opacity, transform;
+}
+
+.combo-asset-card.is-visible {
+   opacity: 1;
+   transform: translateY(0);
+   animation: comboAssetCardEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+   animation-delay: 500ms;
 }
 
 .combo-divider {
